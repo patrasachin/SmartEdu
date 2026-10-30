@@ -1,0 +1,27 @@
+{
+  "python.terminal.activateEnvironment": true,
+  "files.exclude": { "**/__pycache__": true, "**/*.pyc": true },
+  "[html]": { "editor.tabSize": 2 },
+  "emmet.includeLanguages": { "django-html": "html" },
+  "files.associations": {
+    "**/templates/**/*.html": "django-html"
+  },
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "xprotocol",
+        "enableSsl": "Disabled"
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 33060,
+      "driver": "MySQL",
+      "name": "My_db",
+      "database": "College",
+      "username": "root",
+      "password": "Sachin@123",
+      "connectionTimeout": 30
+    }
+  ]
+}

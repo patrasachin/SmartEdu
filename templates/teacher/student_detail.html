@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.get_full_name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ student.get_full_name|default:student.username }}</h1><p>{{ student.student_profile.department }}, Semester {{ student.student_profile.semester }}, roll {{ student.student_profile.roll_number }}</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'teacher_students' %}">All students</a></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="tile {% if student.is_low %}red{% else %}green{% endif %}"><div class="label">Average</div><div class="value">{% if student.avg_pct is not None %}{{ student.avg_pct }}%{% else %}-{% endif %}</div></div></div>
+  <div class="col-6 col-md-3"><div class="tile"><div class="label">Attendance</div><div class="value">{% if student.att_pct is not None %}{{ student.att_pct }}%{% else %}-{% endif %}</div></div></div>
+  <div class="col-12 col-md-6"><div class="tile {% if weak_topics %}red{% endif %}"><div class="label">Weak topics</div><div class="pt-2">{% for w in weak_topics %}<span class="chip" {% if w.is_improved %}style="background:#DDF3E9;border-color:#B7E2CF"{% endif %}>{{ w.topic }}{% if w.is_improved %} (improved){% endif %}</span>{% empty %}<span class="text-muted">None</span>{% endfor %}</div></div></div>
+</div>
+<div class="panel mb-4"><div class="panel-head"><h2>Performance graph</h2><span class="small text-muted">Exam results and assignment ratings over time</span></div><div class="panel-body">
+  <div class="d-flex flex-wrap gap-4 mb-3">
+    <div><div class="small text-muted">Exam average</div><div class="fs-4 fw-bold">{% if series.exam_avg is not None %}{{ series.exam_avg }}%{% else %}-{% endif %}</div></div>
+    <div><div class="small text-muted">Assignment rating</div><div class="fs-4 fw-bold">{% if series.rating_avg is not None %}{{ series.rating_avg }} / 5{% else %}-{% endif %}</div></div>
+    <div><div class="small text-muted">Overall</div><div class="fs-4 fw-bold">{% if series.overall is not None %}{{ series.overall }}%{% else %}-{% endif %}</div></div></div>
+  {% if series.has_data %}<div class="chart-box" style="height:320px"><canvas id="combined"></canvas></div>{% else %}{% include 'partials/empty.html' with text='No results or reviewed assignments yet.' %}{% endif %}
+</div></div>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="panel h-100"><div class="panel-head"><h2>Assignment ratings</h2></div>
+    {% for r in rated %}<div class="list-row"><div><div class="fw-semibold">{{ r.assignment.title }}</div><div class="small text-muted">{{ r.assignment.subject }}{% if r.review %}. {{ r.review|truncatechars:60 }}{% endif %}</div></div>{% include 'partials/stars.html' with rating=r.rating %}</div>
+    {% empty %}{% include 'partials/empty.html' with text='No reviewed assignments yet.' %}{% endfor %}</div></div>
+  <div class="col-lg-6"><div class="panel h-100"><div class="panel-head"><h2>Recent attendance</h2></div>
+    {% for a in attendance %}<div class="list-row"><span>{{ a.date|date:"D, j M" }}</span><span class="pill {% if a.status == 'PRESENT' %}pill-ok{% elif a.status == 'LATE' %}pill-warn{% else %}pill-low{% endif %}">{{ a.get_status_display }}</span></div>
+    {% empty %}{% include 'partials/empty.html' with text='No attendance yet.' %}{% endfor %}</div></div>
+</div>
+<div class="panel mt-4"><div class="panel-head"><h2>Exam history</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Exam</th><th class="text-end">Score</th><th>Understanding</th></tr></thead><tbody>
+  {% for r in reports %}<tr class="{% if r.percentage < 70 %}row-low{% endif %}"><td>{{ r.exam.title }}</td><td class="text-end num">{{ r.percentage|floatformat:1 }}%</td><td>{{ r.understanding_level }}</td></tr>
+  {% empty %}<tr><td colspan="3"><div class="empty">No results yet.</div></td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}
+{% block extra_js %}{% load static %}
+{{ combined|json_script:"chart-data" }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>var d=JSON.parse(document.getElementById('chart-data').textContent);SmartChart.combined('combined',d);</script>
+{% endblock %}

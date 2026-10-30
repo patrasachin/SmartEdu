@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Admin dashboard{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>School overview</h1><p>Everything happening across SmartEdu.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'admin_students' %}?add=1"><i class="bi bi-person-plus"></i> Add student</a><a class="btn btn-outline-primary" href="{% url 'admin_announce' %}">Send announcement</a></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Students</div><div class="value">{{ total_students }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Teachers</div><div class="value">{{ total_teachers }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Exams</div><div class="value">{{ total_exams }}</div><div class="sub">{{ total_submissions }} submissions{% if avg_pct is not None %}, avg {{ avg_pct }}%{% endif %}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile red"><div class="label">Students below 70%</div><div class="value">{{ low_count }}</div><div class="sub">{{ cancelled }} exam{{ cancelled|pluralize }} cancelled</div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel mb-4"><div class="panel-head"><h2>Students per department</h2></div><div class="panel-body">{% if chart.values %}<div class="chart-box" style="height:{{ chart_height }}px"><canvas id="cls"></canvas></div>{% else %}{% include 'partials/empty.html' with text='No students yet.' %}{% endif %}</div></div>
+    <div class="panel"><div class="panel-head"><h2>Recent exams</h2><a class="small" href="{% url 'admin_exams' %}">All exams</a></div><div class="table-wrap"><table class="table"><thead><tr><th>Exam</th><th>Department</th><th>Teacher</th><th>Status</th></tr></thead><tbody>
+      {% for e in recent_exams %}<tr><td class="fw-semibold">{{ e.title }}</td><td>{{ e.department }}<div class="small text-muted">Semester {{ e.semester }}</div></td><td>{{ e.created_by.get_full_name|default:e.created_by.username }}</td><td>{% if e.status == 'PUBLISHED' %}<span class="pill pill-ok">Published</span>{% else %}<span class="pill pill-warn">Draft</span>{% endif %}</td></tr>
+      {% empty %}<tr><td colspan="4"><div class="empty">No exams yet.</div></td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+  <div class="col-lg-5"><div class="panel"><div class="panel-head"><h2>Students needing support</h2></div>
+    {% for s in low_performers %}<div class="list-row"><div><div class="fw-semibold">{{ s.get_full_name|default:s.username }}</div><div class="small text-muted">{{ s.student_profile.department }}, Semester {{ s.student_profile.semester }}</div></div><span class="pill pill-low">{{ s.avg_pct }}%</span></div>
+    {% empty %}{% include 'partials/empty.html' with icon='bi-emoji-smile' text='Everyone is above 70%.' %}{% endfor %}</div></div>
+</div>
+{% endblock %}
+{% block extra_js %}{% load static %}
+{{ chart|json_script:"chart-data" }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>var d=JSON.parse(document.getElementById('chart-data').textContent);SmartChart.simpleBarH('cls',d.labels,d.values);</script>
+{% endblock %}

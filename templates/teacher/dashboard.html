@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}{% url 'create_exam' as create_url %}
+<div class="page-head"><div><h1>Hello, {{ user.first_name|default:user.username }}</h1><p>Here is how your exams are doing.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'create_exam' %}"><i class="bi bi-plus-lg"></i> Create exam</a></div></div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">My exams</div><div class="value">{{ exam_count }}</div><div class="sub">{{ draft_count }} draft{{ draft_count|pluralize }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Submissions</div><div class="value">{{ submission_count }}</div><div class="sub">{% if cancelled_count %}{{ cancelled_count }} cancelled{% else %}None cancelled{% endif %}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile green"><div class="label">Average score</div><div class="value">{% if avg_pct is not None %}{{ avg_pct }}%{% else %}-{% endif %}</div><div class="sub">Across all submissions</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile red"><div class="label">Below 70%</div><div class="value">{{ flagged_count }}</div><div class="sub"><a href="{% url 'teacher_results' %}?filter=low">Review them</a></div></div></div>
+</div>
+
+{% if badge_reattempts or badge_reviews %}
+<div class="d-flex flex-wrap gap-2 mb-4">
+  {% if badge_reattempts %}<a class="btn btn-danger" href="{% url 'reattempt_list' %}"><i class="bi bi-arrow-repeat"></i> {{ badge_reattempts }} re-attempt request{{ badge_reattempts|pluralize }} waiting</a>{% endif %}
+  {% if badge_reviews %}<a class="btn btn-primary" href="{% url 'assignment_list' %}"><i class="bi bi-journal-richtext"></i> {{ badge_reviews }} assignment{{ badge_reviews|pluralize }} to review</a>{% endif %}
+</div>{% endif %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel mb-4"><div class="panel-head"><h2>Average score by exam</h2></div><div class="panel-body">
+      {% if chart.values %}<div class="chart-box"><canvas id="examChart"></canvas></div>{% else %}{% include 'partials/empty.html' with icon='bi-bar-chart' text='Scores appear after students submit.' %}{% endif %}
+    </div></div>
+    <div class="panel"><div class="panel-head"><h2>Latest submissions</h2><a class="small" href="{% url 'teacher_results' %}">All results</a></div>
+      <div class="table-wrap"><table class="table table-hover"><thead><tr><th>Student</th><th>Exam</th><th class="text-end">Score</th><th></th></tr></thead><tbody>
+      {% for s in recent %}<tr class="{% if s.is_flagged_low %}row-low{% endif %}"><td>{{ s.student.get_full_name|default:s.student.username }}</td><td>{{ s.exam.title }}</td>
+        <td class="text-end num">{{ s.percentage|floatformat:1 }}%</td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'submission_detail' s.id %}">Review</a></td></tr>
+      {% empty %}<tr><td colspan="4"><div class="empty">No submissions yet.</div></td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel mb-4"><div class="panel-head"><h2>Needs attention</h2></div>
+      {% for s in flagged %}<div class="list-row"><div><div class="fw-semibold">{{ s.student.get_full_name|default:s.student.username }}</div><div class="small text-muted">{{ s.exam.title }}</div></div>
+        <div class="d-flex align-items-center gap-2"><span class="pill pill-low">{{ s.percentage|floatformat:0 }}%</span><a class="btn btn-sm btn-outline-primary" href="{% url 'submission_detail' s.id %}">Open</a></div></div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-emoji-smile' text='Nobody is below 70%.' %}{% endfor %}</div>
+    <div class="panel"><div class="panel-head"><h2>Your exams</h2><a class="small" href="{% url 'teacher_exams' %}">Manage</a></div>
+      {% for e in upcoming %}<div class="list-row"><div><div class="fw-semibold">{{ e.title }}</div><div class="small text-muted">{{ e.department }}, Sem {{ e.semester }}, {{ e.scheduled_at|date:"j M, g:i A" }}</div></div>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_results_exam' e.id %}">Results</a></div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-journal' text='No published exams yet.' href=create_url cta='Create one' %}{% endfor %}</div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{% load static %}
+{{ chart|json_script:"chart-data" }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>var d=JSON.parse(document.getElementById('chart-data').textContent);SmartChart.percentBar('examChart',d.labels,d.values,d.threshold);</script>
+{% endblock %}

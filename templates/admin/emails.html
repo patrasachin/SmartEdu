@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Guardian emails{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Guardian emails</h1><p>Exam results and attendance emailed to each student's guardian. Every attempt is listed here.</p></div></div>
+{% if not real_smtp %}<div class="alert alert-warning"><strong>Test mode:</strong> no mail server is set up, so emails are printed in the server terminal and listed here, but not delivered.
+  To really send them, copy <code>.env.example</code> to <code>.env</code> and fill in the SMTP settings (see README), then restart.</div>
+{% else %}<div class="alert alert-success mb-3">Emails are sent through your mail server.</div>{% endif %}
+<div class="panel mb-4"><div class="panel-body">
+  <form method="post" action="{% url 'email_test' %}" class="d-flex flex-wrap gap-2 align-items-end">{% csrf_token %}
+    <div><label class="form-label" for="to">Send a test email to</label><input id="to" type="email" name="to" class="form-control" style="min-width:280px" placeholder="you@example.com" required></div>
+    <button class="btn btn-primary"><i class="bi bi-send"></i> Send test</button>
+  </form></div></div>
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a class="btn btn-sm {% if not filter %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?">All</a>
+  <a class="btn btn-sm {% if filter == 'SENT' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=SENT">Sent</a>
+  <a class="btn btn-sm {% if filter == 'FAILED' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=FAILED">Failed{% if failed %} ({{ failed }}){% endif %}</a>
+</div>
+<div class="panel">
+  {% for l in logs %}
+  <details class="list-row" style="display:block"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <span><strong>{{ l.subject }}</strong><br><span class="small text-muted">To {{ l.to_email }}{% if l.student %}, guardian of {{ l.student.get_full_name|default:l.student.username }}{% endif %}</span></span>
+      <span class="text-end"><span class="pill {% if l.status == 'SENT' %}pill-ok{% else %}pill-low{% endif %}">{{ l.status }}</span> <span class="pill pill-info">{{ l.get_kind_display }}</span><br><span class="small text-muted">{{ l.created_at|date:"j M Y, g:i A" }}</span></span></summary>
+    <pre class="mt-2 mb-0 p-3 rounded" style="white-space:pre-wrap;background:#F8FAFE;border:1px solid var(--line);font-family:inherit;font-size:.9rem">{{ l.body }}</pre>
+    {% if l.error %}<div class="text-danger small mt-2">Reason: {{ l.error }}</div>{% endif %}
+  </details>
+  {% empty %}{% include 'partials/empty.html' with icon='bi-envelope' text='No emails yet. They appear after an exam is submitted or attendance is saved.' %}{% endfor %}
+</div>
+{% endblock %}

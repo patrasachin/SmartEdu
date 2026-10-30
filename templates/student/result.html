@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Result{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ submission.exam.title }}</h1><p>{{ submission.exam.subject }}{% if submission.submitted_at %}, submitted {{ submission.submitted_at|date:"j M Y, g:i A" }}{% endif %}</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'student_exams' %}">Back to exams</a></div></div>
+
+{% if submission.is_cancelled %}
+  <div class="alert alert-danger"><h2 class="h5 mb-1"><i class="bi bi-slash-circle"></i> This exam was cancelled</h2>
+    {{ submission.cancel_reason }}. If you think this was a mistake, ask your teacher. They can allow a retake.</div>
+{% elif not submission.is_completed %}
+  <div class="alert alert-warning">This exam hasn't been submitted yet. <a href="{% url 'take_exam' submission.exam.id %}">Resume it</a>.</div>
+{% else %}
+<div class="panel mb-4"><div class="panel-body d-flex flex-wrap align-items-center gap-4">
+  <div class="ring {% if submission.is_flagged_low %}low{% else %}ok{% endif %}" style="--p:{{ submission.percentage|floatformat:0 }}"><span>{{ submission.percentage|floatformat:0 }}%</span></div>
+  <div>
+    <div class="fs-3 fw-bold num">{{ submission.total_score|floatformat:"-1" }} <span class="text-muted fw-normal fs-5">/ {{ submission.exam.total_marks }}</span></div>
+    {% if report %}<div class="mb-1">Understanding: <strong>{{ report.understanding_level }}</strong></div>{% endif %}
+    {% if submission.is_flagged_low %}<span class="pill pill-low">Below {{ threshold }}%, your teacher can see this</span>
+    {% else %}<span class="pill pill-ok">At or above {{ threshold }}%</span>{% endif %}
+  </div>
+  {% if missed_topics %}<div class="ms-lg-auto"><div class="small text-muted mb-1">Topics with mistakes</div>{% for t in missed_topics %}<span class="chip">{{ t }}</span>{% endfor %}</div>{% endif %}
+</div></div>
+
+<div class="panel mb-4"><div class="panel-head"><h2>Your answers</h2></div>
+  {% for a in answers %}
+    <div class="list-row align-items-start" style="flex-direction:column;align-items:stretch">
+      <div class="d-flex justify-content-between gap-3">
+        <div class="fw-semibold">{{ forloop.counter }}. {{ a.question.text }}</div>
+        <div class="text-nowrap num"><span class="pill {% if a.is_correct %}pill-ok{% elif a.is_correct is None %}pill-warn{% else %}pill-low{% endif %}">{{ a.score|floatformat:"-1" }} / {{ a.question.marks }}</span></div>
+      </div>
+      <div class="small text-muted">Topic: {{ a.question.topic|default:"General" }}</div>
+      {% if a.question.qtype == 'MCQ' %}
+        <div>Your answer: <strong>{{ a.selected_option|default:"not answered" }}</strong>
+          {% if a.selected_option != a.question.correct_option %} &nbsp;Correct: <strong style="color:var(--green)">{{ a.question.correct_option }}</strong>{% endif %}</div>
+      {% else %}
+        <div class="p-2 rounded" style="background:#F8FAFE;border:1px solid var(--line)">{{ a.subjective_text|default:"No answer"|linebreaksbr }}</div>
+      {% endif %}
+      {% if a.ai_feedback %}<div class="pen">{{ a.ai_feedback }}</div>{% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+{% if recommendations %}
+<div class="panel mb-4"><div class="panel-head"><h2>Revise these</h2></div>
+  {% for r in recommendations %}<div class="list-row"><div><div class="fw-semibold">{{ r.title }}</div><div class="small text-muted">{{ r.topic }}. {{ r.description }}</div></div>
+    <a class="btn btn-sm btn-outline-primary" href="{{ r.resource_link }}" target="_blank" rel="noopener">Open</a></div>{% endfor %}
+</div>
+{% endif %}
+{% endif %}
+
+{% if violations %}
+<div class="panel"><div class="panel-head"><h2>Proctoring log</h2></div>
+  {% for v in violations %}<div class="list-row"><span><i class="bi bi-exclamation-triangle" style="color:var(--red)"></i> {{ v.get_violation_type_display }}{% if v.details %}: {{ v.details }}{% endif %}</span><span class="small text-muted">{{ v.timestamp|date:"g:i:s A" }}</span></div>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

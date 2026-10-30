@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Students</h1><p>Average score and attendance for each student. Below 70% is highlighted.</p></div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+  <input class="form-control" style="max-width:240px" name="q" value="{{ q }}" placeholder="Search name, username or roll no.">
+  {% include 'partials/dept_sem_filter.html' %}
+  <select class="form-select" style="max-width:170px" name="filter"><option value="">Everyone</option><option value="low" {% if filter == 'low' %}selected{% endif %}>Below 70% only</option></select>
+  <button class="btn btn-primary">Filter</button>
+</form>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Roll</th><th>Name</th><th>Department and semester</th><th class="text-end">Average</th><th class="text-end">Attendance</th><th></th></tr></thead><tbody>
+  {% for s in students %}<tr class="{% if s.is_low %}row-low{% endif %}">
+    <td class="num">{{ s.student_profile.roll_number }}</td><td class="fw-semibold">{{ s.get_full_name|default:s.username }}</td><td>{{ s.student_profile.department }}<div class="small text-muted">Semester {{ s.student_profile.semester }}</div></td>
+    <td class="text-end num">{% if s.avg_pct is not None %}<span class="pill {% if s.is_low %}pill-low{% else %}pill-ok{% endif %}">{{ s.avg_pct }}%</span>{% else %}-{% endif %}</td>
+    <td class="text-end num">{% if s.att_pct is not None %}{{ s.att_pct }}%{% else %}-{% endif %}</td>
+    <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_student_detail' s.id %}">View</a></td></tr>
+  {% empty %}<tr><td colspan="6">{% include 'partials/empty.html' with icon='bi-people' text='No students match.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

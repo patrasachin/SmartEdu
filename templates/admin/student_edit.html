@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Edit student{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Edit student</h1><p>{{ student.get_full_name|default:student.username }}, roll {{ student.student_profile.roll_number }}. Change the semester here when the student moves up.</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'admin_students' %}">Back</a></div></div>
+<div class="panel" style="max-width:780px"><div class="panel-body">
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.first_name %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.last_name %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.email %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.phone %}</div>
+    </div>
+    {% include 'partials/dept_semester.html' %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.guardian_name %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.guardian_email %}</div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+    <a class="btn btn-outline-danger float-end" href="{% url 'delete_user' student.id %}"><i class="bi bi-trash"></i> Delete student</a>
+  </form>
+</div></div>
+{% endblock %}

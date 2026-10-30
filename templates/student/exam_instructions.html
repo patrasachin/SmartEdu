@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ exam.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ exam.title }}</h1><p>{{ exam.subject }} for {{ exam.department }}, Semester {{ exam.semester }}</p></div>{% include 'partials/status_pill.html' with state=state %}</div>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="panel"><div class="panel-body">
+      <dl class="row mb-0">
+        <dt class="col-6 text-muted fw-normal">Questions</dt><dd class="col-6 fw-semibold">{{ question_count }}</dd>
+        <dt class="col-6 text-muted fw-normal">Total marks</dt><dd class="col-6 fw-semibold">{{ exam.total_marks }}</dd>
+        <dt class="col-6 text-muted fw-normal">Time allowed</dt><dd class="col-6 fw-semibold">{{ exam.duration_minutes }} minutes</dd>
+        <dt class="col-6 text-muted fw-normal">Opens</dt><dd class="col-6 fw-semibold">{{ exam.scheduled_at|date:"D j M, g:i A" }}</dd>
+        {% if exam.closes_at %}<dt class="col-6 text-muted fw-normal">Closes</dt><dd class="col-6 fw-semibold">{{ exam.closes_at|date:"D j M, g:i A" }}</dd>{% endif %}
+      </dl>
+      {% if exam.description %}<p class="mt-3 mb-0 text-muted">{{ exam.description }}</p>{% endif %}
+    </div></div>
+  </div>
+  <div class="col-lg-7">
+    <div class="panel"><div class="panel-head"><h2>Proctoring rules</h2></div>
+      <ul class="list-clean">
+        <li class="list-row"><span><i class="bi bi-camera-video me-2"></i>Your camera and microphone stay on for the whole exam.</span></li>
+        <li class="list-row"><span><i class="bi bi-fullscreen me-2"></i>The exam runs in fullscreen. Leaving fullscreen is a violation.</span></li>
+        <li class="list-row"><span><i class="bi bi-window-stack me-2"></i>Switching tab or window is a violation.</span></li>
+        <li class="list-row"><span><i class="bi bi-clipboard-x me-2"></i>Copying and pasting are blocked and counted as violations.</span></li>
+        <li class="list-row"><span><i class="bi bi-exclamation-octagon me-2" style="color:var(--red)"></i><strong>{{ max_violations }} violations cancel the exam.</strong></span></li>
+        <li class="list-row"><span><i class="bi bi-clock-history me-2"></i>Answers save automatically. The exam submits itself when time runs out.</span></li>
+      </ul>
+      <div class="panel-body border-top">
+        {% if state == 'upcoming' %}<div class="alert alert-info mb-0">This exam opens on {{ exam.scheduled_at|date:"D j M, g:i A" }}.</div>
+        {% elif state == 'done' or state == 'cancelled' %}<a class="btn btn-primary" href="{% url 'student_result' submission.id %}">View your result</a>
+        {% elif state == 'missed' %}
+          <div class="alert alert-warning">This exam closed on {{ exam.closes_at|date:"j M Y, g:i A" }} and you did not attempt it.</div>
+          {% if not request_obj %}<a class="btn btn-primary" href="{% url 'reattempt_new' exam.id %}">Give your reason and proof</a>
+          {% elif request_obj.status == 'PENDING' %}<div class="alert alert-info mb-0">Your request is waiting for your teacher.</div>
+          {% elif request_obj.status == 'REJECTED' %}<div class="alert alert-danger mb-0"><strong>Your request was not approved.</strong> {{ request_obj.teacher_comment }}</div>
+          {% else %}<div class="alert alert-secondary mb-0">The extra chance given to you has expired.</div>{% endif %}
+        {% elif question_count == 0 %}<div class="alert alert-warning mb-0">This exam has no questions yet.</div>
+        {% else %}
+          {% if extension %}<div class="alert alert-success"><i class="bi bi-check2-circle"></i> Your teacher gave you another chance. Only you can take it, before <strong>{{ extension.extended_until|date:"j M Y, g:i A" }}</strong>.</div>{% endif %}
+          <a class="btn btn-danger btn-lg" href="{% url 'take_exam' exam.id %}">{% if submission %}Resume the exam{% else %}I agree, start the exam{% endif %}</a>
+          <p class="small text-muted mt-2 mb-0">You'll be asked to allow your camera and microphone first.{% if submission %} Your timer has been running since you first opened it.{% endif %}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

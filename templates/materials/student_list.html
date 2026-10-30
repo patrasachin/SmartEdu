@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Study material{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Study material</h1><p>Shared by your teachers for {{ my_department }}, Semester {{ my_semester }}.</p></div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-4">
+  <input class="form-control" style="max-width:240px" name="q" value="{{ q }}" placeholder="Search by title">
+  <select class="form-select" style="max-width:180px" name="subject" onchange="this.form.submit()"><option value="">All subjects</option>{% for s in subjects %}<option {% if s == subject %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+  <select class="form-select" style="max-width:170px" name="type" onchange="this.form.submit()"><option value="">All types</option>{% for k in kinds %}<option {% if k == kind %}selected{% endif %}>{{ k }}</option>{% endfor %}</select>
+  <button class="btn btn-outline-primary">Search</button>
+</form>
+{% if items %}
+<div class="mat-grid">
+  {% for m in items %}
+  <article class="mat-card t-{{ m.css|slice:'3:' }}">
+    <div class="d-flex gap-3 align-items-start"><span class="fk {{ m.css }}"><i class="bi {{ m.icon }}"></i></span>
+      <div><h3>{{ m.title }}</h3><div class="small text-muted">{{ m.subject }}, {{ m.uploaded_by.get_full_name|default:m.uploaded_by.username }}</div></div></div>
+    {% if m.description %}<p>{{ m.description|truncatechars:140 }}</p>{% endif %}
+    <div class="mat-foot">
+      <span class="small text-muted">{{ m.created_at|date:"j M Y" }}{% if m.file %}, {{ m.size_display }}{% endif %}</span>
+      <span class="d-flex gap-2">
+        {% if m.file %}<a class="btn btn-sm btn-primary" href="{% url 'material_file' m.id %}" target="_blank" rel="noopener"><i class="bi bi-{% if m.extension == 'pdf' or m.extension == 'txt' %}eye{% else %}download{% endif %}"></i> {% if m.extension == 'pdf' or m.extension == 'txt' %}View{% else %}Download{% endif %}</a>{% endif %}
+        {% if m.link %}<a class="btn btn-sm {% if m.file %}btn-outline-primary{% else %}btn-primary{% endif %}" href="{{ m.link }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open link</a>{% endif %}
+      </span>
+    </div>
+  </article>{% endfor %}
+</div>
+{% else %}<div class="panel">{% include 'partials/empty.html' with icon='bi-folder2-open' text='Nothing here yet. When a teacher shares something with your department and semester, it appears here.' %}</div>{% endif %}
+{% endblock %}

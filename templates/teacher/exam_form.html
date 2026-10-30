@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}{% if editing %}Edit exam{% else %}Create exam{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{% if editing %}Edit exam details{% else %}Create an exam{% endif %}</h1><p>{% if editing %}{{ exam.title }}{% else %}Next you'll add questions. Students are told only when you publish.{% endif %}</p></div></div>
+<div class="panel" style="max-width:760px"><div class="panel-body">
+  <form method="post" novalidate>{% csrf_token %}
+    {% include 'partials/field.html' with field=form.title %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.subject %}</div>
+    </div>
+    {% include 'partials/dept_semester.html' %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.scheduled_at %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.closes_at %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.duration_minutes %}</div>
+    </div>
+    {% include 'partials/field.html' with field=form.description %}
+    <button class="btn btn-primary" type="submit">{% if editing %}Save changes{% else %}Create and add questions{% endif %}</button>
+    <a class="btn btn-outline-primary" href="{% url 'teacher_exams' %}">Cancel</a>
+  </form>
+</div></div>
+{% endblock %}

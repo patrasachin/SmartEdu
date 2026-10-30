@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Assignments{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Assignments</h1><p>Topics from your teachers. Upload your work, then see your rating here.</p></div></div>
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a class="btn btn-sm {% if not filter %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?">All</a>
+  <a class="btn btn-sm {% if filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?filter=pending">To do</a>
+  <a class="btn btn-sm {% if filter == 'submitted' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?filter=submitted">Waiting for review</a>
+  <a class="btn btn-sm {% if filter == 'reviewed' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?filter=reviewed">Reviewed</a>
+</div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Topic</th><th>Teacher</th><th>Due</th><th>Status</th><th>Rating</th><th></th></tr></thead><tbody>
+  {% for r in rows %}<tr>
+    <td class="fw-semibold">{{ r.a.title }}<div class="small text-muted fw-normal">{{ r.a.subject }}</div></td>
+    <td>{{ r.a.created_by.get_full_name|default:r.a.created_by.username }}</td>
+    <td class="text-nowrap">{% if r.a.due_date %}{{ r.a.due_date|date:"j M, g:i A" }}{% else %}-{% endif %}</td>
+    <td>{% if r.state == 'reviewed' %}<span class="pill pill-ok">Reviewed</span>{% elif r.state == 'submitted' %}<span class="pill pill-info">Submitted</span>{% elif r.state == 'overdue' %}<span class="pill pill-low">Overdue</span>{% else %}<span class="pill pill-warn">To do</span>{% endif %}
+      {% if r.s.is_late %}<span class="pill pill-low ms-1">Late</span>{% endif %}</td>
+    <td>{% if r.s.is_reviewed %}{% include 'partials/stars.html' with rating=r.s.rating %}{% else %}-{% endif %}</td>
+    <td class="text-end"><a class="btn btn-sm {% if r.state == 'pending' or r.state == 'overdue' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'assignment_detail' r.a.id %}">{% if r.state == 'pending' or r.state == 'overdue' %}Submit{% else %}Open{% endif %}</a></td>
+  </tr>{% empty %}<tr><td colspan="6">{% include 'partials/empty.html' with icon='bi-journal-richtext' text='No assignments here.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

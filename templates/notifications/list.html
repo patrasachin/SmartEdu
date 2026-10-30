@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Notifications</h1><p>{% if unread_count %}{{ unread_count }} new since you last looked.{% else %}You're all caught up.{% endif %}</p></div>
+</div>
+<div class="panel">
+  {% for n in notifications %}
+    <div class="list-row" {% if not n.is_read %}style="background:#FFFBE6"{% endif %}>
+      <div class="d-flex gap-3 align-items-start">
+        <i class="bi {% if n.ntype == 'EXAM' %}bi-journal-text{% elif n.ntype == 'RESULT' %}bi-check2-square{% elif n.ntype == 'ATTENDANCE' %}bi-calendar-x{% elif n.ntype == 'ASSIGNMENT' %}bi-journal-richtext{% elif n.ntype == 'REATTEMPT' %}bi-arrow-repeat{% elif 'study material' in n.title|lower %}bi-folder2-open{% else %}bi-megaphone{% endif %} fs-4" style="color:var(--ink)"></i>
+        <div>
+          <div class="fw-semibold">{{ n.title }}{% if not n.is_read %} <span class="pill pill-warn ms-1">New</span>{% endif %}</div>
+          <div class="text-muted">{{ n.message }}</div>
+          {% if n.sender %}<div class="small text-muted">From {{ n.sender.get_full_name|default:n.sender.username }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="small text-muted text-nowrap">{{ n.created_at|timesince }} ago</div>
+    </div>
+  {% empty %}
+    {% include 'partials/empty.html' with icon='bi-bell' text='No notifications yet.' %}
+  {% endfor %}
+</div>
+{% endblock %}

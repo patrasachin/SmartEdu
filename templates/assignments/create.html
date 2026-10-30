@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}New assignment{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Send an assignment</h1><p>Send just the topic. Students submit their work (PDF, Word, photo and more) and you review and rate it.</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'assignment_list' %}">Back</a></div></div>
+<div class="panel" style="max-width:760px"><div class="panel-body">
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="row">
+      <div class="col-md-8">{% include 'partials/field.html' with field=form.title %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.subject %}</div>
+    </div>
+    {% include 'partials/dept_semester.html' %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.due_date %}</div>
+    </div>
+    {% include 'partials/field.html' with field=form.description %}
+    <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Send to students</button>
+  </form>
+</div></div>
+{% endblock %}

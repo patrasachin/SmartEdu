@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Study material{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Study material</h1><p>Files and links you've shared. Each one is visible only to the department and semester it was sent to.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'material_upload' %}"><i class="bi bi-upload"></i> Share material</a></div></div>
+<form method="get" class="mb-3 d-flex flex-wrap gap-2">{% include 'partials/dept_sem_filter.html' %}<button class="btn btn-outline-primary">Filter</button></form>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Material</th><th>Department and semester</th><th>Subject</th><th>Type</th><th>Shared</th><th></th></tr></thead><tbody>
+  {% for m in items %}<tr>
+    <td><div class="d-flex align-items-center gap-3"><span class="fk {{ m.css }}"><i class="bi {{ m.icon }}"></i></span>
+      <div><div class="fw-semibold">{{ m.title }}</div><div class="small text-muted">{% if m.file %}{{ m.filename|truncatechars:38 }} {{ m.size_display }}{% endif %}{% if m.file and m.link %} + {% endif %}{% if m.link %}link{% endif %}</div></div></div></td>
+    <td>{{ m.department }}<div class="small text-muted">Semester {{ m.semester }}</div></td><td>{{ m.subject }}</td><td><span class="pill pill-info">{{ m.kind_label }}</span></td><td class="text-nowrap">{{ m.created_at|date:"j M Y" }}</td>
+    <td class="text-end text-nowrap">
+      {% if m.file %}<a class="btn btn-sm btn-outline-primary" href="{% url 'material_file' m.id %}" target="_blank" rel="noopener">Open file</a>{% endif %}
+      {% if m.link %}<a class="btn btn-sm btn-outline-primary" href="{{ m.link }}" target="_blank" rel="noopener noreferrer">Open link</a>{% endif %}
+      <form class="d-inline" method="post" action="{% url 'material_delete' m.id %}" data-confirm="Remove &quot;{{ m.title }}&quot; for {{ m.department }}, Semester {{ m.semester }}?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" aria-label="Remove {{ m.title }}"><i class="bi bi-trash"></i></button></form></td>
+  </tr>{% empty %}<tr><td colspan="6">{% url 'material_upload' as up %}{% include 'partials/empty.html' with icon='bi-folder2-open' text='You have not shared anything yet.' href=up cta='Share your first material' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

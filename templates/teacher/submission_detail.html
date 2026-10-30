@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Review submission{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ sub.student.get_full_name|default:sub.student.username }}</h1><p>{{ sub.exam.title }}{% if sub.is_completed %}, {{ sub.total_score|floatformat:"-1" }}/{{ sub.exam.total_marks }} ({{ sub.percentage|floatformat:1 }}%){% endif %}</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'teacher_results_exam' sub.exam.id %}">Back to results</a>
+  {% if sub.is_cancelled or sub.is_completed %}<form method="post" action="{% url 'reset_submission' sub.id %}" data-confirm="Delete this attempt and let the student retake the exam?">{% csrf_token %}<button class="btn btn-outline-danger">Allow retake</button></form>{% endif %}</div></div>
+
+{% if sub.is_cancelled %}<div class="alert alert-danger"><strong>Cancelled.</strong> {{ sub.cancel_reason }}. Check the log below. If it looks like a false alarm, allow a retake.</div>{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <form method="post">{% csrf_token %}
+    <div class="panel"><div class="panel-head"><h2>Answers</h2>{% if sub.is_completed %}<button class="btn btn-primary btn-sm" type="submit">Save marks</button>{% endif %}</div>
+    {% for a in answers %}
+      <div class="list-row" style="flex-direction:column;align-items:stretch">
+        <div class="fw-semibold">{{ forloop.counter }}. {{ a.question.text }} <span class="pill pill-info ms-1">{{ a.question.get_qtype_display }}</span></div>
+        {% if a.question.qtype == 'MCQ' %}
+          <div>Answered <strong>{{ a.selected_option|default:"-" }}</strong>, correct <strong style="color:var(--green)">{{ a.question.correct_option }}</strong></div>
+        {% else %}
+          <div class="p-2 rounded" style="background:#F8FAFE;border:1px solid var(--line)">{{ a.subjective_text|default:"No answer"|linebreaksbr }}</div>
+          {% if a.question.ideal_answer %}<div class="small text-muted"><strong>Ideal:</strong> {{ a.question.ideal_answer }}</div>{% endif %}
+        {% endif %}
+        {% if sub.is_completed %}
+        <div class="row g-2 mt-1 align-items-center">
+          <div class="col-4 col-md-2"><label class="form-label small mb-0" for="score_{{ a.id }}">Marks / {{ a.question.marks }}</label><input class="form-control form-control-sm" id="score_{{ a.id }}" name="score_{{ a.id }}" type="number" step="0.25" min="0" max="{{ a.question.marks }}" value="{{ a.score|floatformat:'-2' }}"></div>
+          <div class="col-8 col-md-10"><label class="form-label small mb-0" for="fb_{{ a.id }}">Feedback shown to the student</label><input class="form-control form-control-sm" id="fb_{{ a.id }}" name="feedback_{{ a.id }}" value="{{ a.ai_feedback }}"></div>
+        </div>{% endif %}
+      </div>
+    {% empty %}{% include 'partials/empty.html' with text='No answers were saved for this attempt.' %}{% endfor %}
+    </div></form>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel"><div class="panel-head"><h2>Proctoring log</h2><span class="pill {% if logs %}pill-low{% else %}pill-ok{% endif %}">{{ logs|length }} violation{{ logs|length|pluralize }}</span></div>
+      {% for l in logs %}<div class="list-row" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="d-flex justify-content-between w-100"><strong>{{ l.get_violation_type_display }}</strong><span class="small text-muted">{{ l.timestamp|date:"g:i:s A" }}</span></div>
+        {% if l.details %}<div class="small text-muted">{{ l.details }}</div>{% endif %}{% if l.image_snapshot %}<img src="{{ l.image_snapshot.url }}" alt="Snapshot at the time of the violation" class="img-fluid rounded border mt-1">{% endif %}</div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-shield-check' text='No violations recorded.' %}{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

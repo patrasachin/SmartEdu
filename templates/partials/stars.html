@@ -1,0 +1,1 @@
+<span class="stars" aria-label="{{ rating }} out of 5">{% for i in '12345' %}<i class="bi bi-star{% if forloop.counter <= rating %}-fill{% else %} off{% endif %}"></i>{% endfor %}</span>

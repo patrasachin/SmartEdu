@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ a.title }}</h1><p>{{ a.subject }}, from {{ a.created_by.get_full_name|default:a.created_by.username }}{% if a.due_date %}, submit before {{ a.due_date|date:"j M Y, g:i A" }}{% endif %}</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'assignment_list' %}">All assignments</a></div></div>
+{% if a.description %}<div class="alert alert-info">{{ a.description }}</div>{% endif %}
+<div class="row g-4">
+  <div class="col-lg-6"><div class="panel"><div class="panel-head"><h2>{% if sub %}Your submission{% else %}Submit your work{% endif %}</h2>
+      {% if sub %}{% if sub.is_reviewed %}<span class="pill pill-ok">Reviewed</span>{% else %}<span class="pill pill-info">Waiting for review</span>{% endif %}{% elif a.is_overdue %}<span class="pill pill-low">Overdue</span>{% endif %}</div>
+    <div class="panel-body">
+      {% if sub %}
+        <div class="d-flex align-items-center gap-3 mb-2"><span class="fk {{ sub.kind.2 }}"><i class="bi {{ sub.kind.1 }}"></i></span>
+          <div><div class="fw-semibold">{{ sub.filename }}</div><div class="small text-muted">Submitted {{ sub.submitted_at|date:"j M Y, g:i A" }}{% if sub.is_late %}, late{% endif %}</div></div></div>
+        <a class="btn btn-sm btn-outline-primary mb-3" href="{% url 'submission_file' sub.id %}" target="_blank" rel="noopener">Open my file</a>
+        {% if sub.note %}<div class="small text-muted">Your note</div><div class="mb-3">{{ sub.note|linebreaksbr }}</div>{% endif %}
+      {% endif %}
+      {% if sub.is_reviewed %}
+        <p class="text-muted mb-0">Your teacher has reviewed this, so it can't be changed.</p>
+      {% else %}
+        {% if sub %}<hr><div class="fw-semibold mb-2">Upload a new file to replace it</div>{% endif %}
+        <form method="post" action="{% url 'assignment_submit' a.id %}" enctype="multipart/form-data" novalidate>{% csrf_token %}
+          {% include 'partials/field.html' with field=form.file %}
+          {% include 'partials/field.html' with field=form.note %}
+          <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> {% if sub %}Replace submission{% else %}Submit assignment{% endif %}</button>
+        </form>
+      {% endif %}
+    </div></div></div>
+  <div class="col-lg-6"><div class="panel"><div class="panel-head"><h2>Your rating</h2></div><div class="panel-body">
+    {% if sub.is_reviewed %}
+      <div class="fs-3 mb-1">{% include 'partials/stars.html' with rating=sub.rating %} <span class="fs-5 fw-bold">{{ sub.rating }} / 5</span></div>
+      {% if sub.review %}<div class="p-3 rounded mt-2" style="background:#F8FAFE;border:1px solid var(--line)"><div class="small text-muted mb-1">Review from {{ sub.reviewed_by.get_full_name|default:sub.reviewed_by.username }}, {{ sub.reviewed_at|date:"j M Y" }}</div><div class="pen" style="font-size:1.5rem">{{ sub.review }}</div></div>{% endif %}
+    {% else %}<p class="text-muted mb-0">{% if sub %}Your teacher has not reviewed it yet.{% else %}Submit your work to get a rating.{% endif %}</p>{% endif %}
+  </div></div></div>
+</div>
+{% endblock %}

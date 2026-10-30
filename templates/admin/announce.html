@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Announcements</h1><p>Shows up in everyone's notifications.</p></div></div>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="panel"><div class="panel-head"><h2>New announcement</h2></div><div class="panel-body">
+    <form method="post" novalidate>{% csrf_token %}
+      {% include 'partials/field.html' with field=form.audience %}
+      <div class="row"><div class="col-md-8">{% include 'partials/field.html' with field=form.department %}</div><div class="col-md-4">{% include 'partials/field.html' with field=form.semester %}</div></div>
+      {{ DEPT_SEM_MAP|json_script:"dept-sem-map" }}{% load static %}<script src="{% static 'js/dept_semester.js' %}"></script>
+      {% include 'partials/field.html' with field=form.title %}{% include 'partials/field.html' with field=form.message %}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Send</button>
+    </form></div></div></div>
+  <div class="col-lg-6"><div class="panel"><div class="panel-head"><h2>Recently sent</h2></div>
+    {% for s in sent %}<div class="list-row"><div><div class="fw-semibold">{{ s.title }}</div><div class="small text-muted">{{ s.message|truncatechars:90 }}</div></div><span class="pill pill-info">{{ s.n }} people</span></div>
+    {% empty %}{% include 'partials/empty.html' with icon='bi-megaphone' text='Nothing sent yet.' %}{% endfor %}</div></div>
+</div>
+{% endblock %}

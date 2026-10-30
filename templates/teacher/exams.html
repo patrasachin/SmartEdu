@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}My exams{% endblock %}
+{% block content %}{% url 'create_exam' as create_url %}
+<div class="page-head"><div><h1>My exams</h1><p>Drafts stay hidden until you publish them.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'create_exam' %}"><i class="bi bi-plus-lg"></i> Create exam</a></div></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Exam</th><th>Department and semester</th><th>Opens</th><th class="text-end">Questions</th><th class="text-end">Marks</th><th class="text-end">Submitted</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for e in exams %}<tr>
+    <td class="fw-semibold">{{ e.title }}<div class="small text-muted fw-normal">{{ e.subject }}</div></td><td>{{ e.department }}<div class="small text-muted">Semester {{ e.semester }}</div></td><td class="text-nowrap">{{ e.scheduled_at|date:"j M, g:i A" }}</td>
+    <td class="text-end num">{{ e.q_count }}</td><td class="text-end num">{{ e.total_marks }}</td><td class="text-end num">{{ e.done }}</td>
+    <td>{% if e.status == 'PUBLISHED' %}<span class="pill pill-ok">Published</span>{% else %}<span class="pill pill-warn">Draft</span>{% endif %}</td>
+    <td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_questions' e.id %}">Questions</a>
+      {% if e.status == 'PUBLISHED' %}<a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_results_exam' e.id %}">Results</a>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="8">{% include 'partials/empty.html' with icon='bi-journal-plus' text='You have not created an exam yet.' href=create_url cta='Create your first exam' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

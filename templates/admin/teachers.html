@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Teachers{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Teachers</h1><p>{{ teachers|length }} shown.</p></div>
+  <div class="page-actions"><button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addForm"><i class="bi bi-person-plus"></i> Register teacher</button></div></div>
+<div class="collapse {% if show_form %}show{% endif %} mb-4" id="addForm"><div class="panel"><div class="panel-head"><h2>New teacher</h2></div><div class="panel-body">
+  <form method="post" action="{% url 'register_teacher' %}" novalidate>{% csrf_token %}
+    <div class="row">
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.username %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.first_name %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.last_name %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.employee_id %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.subject %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.department force_required=1 %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.email %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.phone %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.password %}</div>
+    </div>
+    <button class="btn btn-primary" type="submit">Register teacher</button>
+  </form></div></div></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3"><input class="form-control" style="max-width:240px" name="q" value="{{ q }}" placeholder="Search teachers">
+  <select class="form-select" style="max-width:340px" name="department" aria-label="Department"><option value="">All departments</option>{% for d in departments %}<option value="{{ d }}" {% if d == dept %}selected{% endif %}>{{ d }}</option>{% endfor %}</select>
+  <button class="btn btn-outline-primary">Filter</button></form>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>ID</th><th>Name</th><th>Subject and department</th><th>Contact</th><th class="text-end">Exams</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for t in teachers %}<tr><td class="num">{{ t.teacher_profile.employee_id }}</td><td class="fw-semibold">{{ t.get_full_name|default:t.username }}<div class="small text-muted fw-normal">{{ t.username }}</div></td>
+    <td>{{ t.teacher_profile.subject }}<div class="small text-muted">{{ t.teacher_profile.department }}</div></td><td class="small">{{ t.email|default:"-" }}<br>{{ t.phone }}</td><td class="text-end num">{{ t.exam_count }}</td>
+    <td>{% if t.is_active %}<span class="pill pill-ok">Active</span>{% else %}<span class="pill pill-muted">Switched off</span>{% endif %}</td>
+    <td class="text-end text-nowrap">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_edit' t.id %}" title="Edit teacher or change department" aria-label="Edit {{ t.username }}"><i class="bi bi-pencil"></i></a>
+      <a class="btn btn-sm btn-outline-danger" href="{% url 'delete_user' t.id %}" title="Delete teacher" aria-label="Delete {{ t.username }}"><i class="bi bi-trash"></i></a>
+      <form class="d-inline" method="post" action="{% url 'reset_password' t.id %}" data-confirm="Generate a new password for {{ t.username }}?">{% csrf_token %}<input type="hidden" name="next" value="{% url 'admin_teachers' %}"><button class="btn btn-sm btn-outline-primary" title="Reset password"><i class="bi bi-key"></i></button></form>
+      <form class="d-inline" method="post" action="{% url 'toggle_user' t.id %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'admin_teachers' %}"><button class="btn btn-sm btn-outline-{% if t.is_active %}danger{% else %}success{% endif %}">{% if t.is_active %}Switch off{% else %}Switch on{% endif %}</button></form></td></tr>
+  {% empty %}<tr><td colspan="7">{% include 'partials/empty.html' with icon='bi-person-workspace' text='No teachers found.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

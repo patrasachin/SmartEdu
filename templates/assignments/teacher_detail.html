@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}{{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ a.title }}</h1><p>{{ a.subject }} for {{ a.department }}, Semester {{ a.semester }}{% if a.due_date %}, due {{ a.due_date|date:"j M Y, g:i A" }}{% endif %}</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'assignment_list' %}">All assignments</a></div></div>
+{% if a.description %}<div class="alert alert-info">{{ a.description }}</div>{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-4"><div class="tile"><div class="label">Submitted</div><div class="value">{{ submitted }}<span class="fs-5 text-muted"> / {{ rows|length }}</span></div></div></div>
+  <div class="col-4"><div class="tile green"><div class="label">Reviewed</div><div class="value">{{ reviewed }}</div></div></div>
+  <div class="col-4"><div class="tile"><div class="label">Average rating</div><div class="value">{% if avg %}{{ avg }}<span class="fs-5 text-muted"> / 5</span>{% else %}-{% endif %}</div></div></div>
+</div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Roll</th><th>Student</th><th>Status</th><th>Submitted</th><th>Rating</th><th></th></tr></thead><tbody>
+  {% for r in rows %}<tr>
+    <td class="num">{{ r.student.student_profile.roll_number }}</td><td class="fw-semibold">{{ r.student.get_full_name|default:r.student.username }}</td>
+    <td>{% if not r.sub %}<span class="pill pill-muted">Not submitted</span>{% elif r.sub.is_reviewed %}<span class="pill pill-ok">Reviewed</span>{% else %}<span class="pill pill-warn">Waiting for review</span>{% endif %}
+      {% if r.sub.is_late %}<span class="pill pill-low ms-1">Late</span>{% endif %}</td>
+    <td class="text-nowrap">{% if r.sub %}{{ r.sub.submitted_at|date:"j M, g:i A" }}{% else %}-{% endif %}</td>
+    <td>{% if r.sub.is_reviewed %}{% include 'partials/stars.html' with rating=r.sub.rating %}{% else %}-{% endif %}</td>
+    <td class="text-end text-nowrap">{% if r.sub %}<a class="btn btn-sm btn-outline-primary" href="{% url 'submission_file' r.sub.id %}" target="_blank" rel="noopener">View file</a>
+      <a class="btn btn-sm btn-primary" href="{% url 'submission_review' r.sub.id %}">{% if r.sub.is_reviewed %}Edit review{% else %}Review and rate{% endif %}</a>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="6">{% include 'partials/empty.html' with icon='bi-people' text='No students in this department and semester yet.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

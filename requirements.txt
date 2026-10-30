@@ -1,0 +1,7 @@
+# SmartEdu dependencies. Ranges (not pins) so installs work on Python 3.10 to 3.13.
+Django>=5.2,<5.3
+psycopg[binary]>=3.2
+Pillow>=11.0
+scikit-learn>=1.5.2
+# Optional: enables the webcam face check. The app runs fine without it.
+opencv-python-headless>=4.10,<5

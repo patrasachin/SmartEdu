@@ -1,0 +1,89 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SmartEdu{% endblock %} | SmartEdu</title>
+  <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'img/smartedu-icon.png' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% with url=request.resolver_match.url_name %}
+<div class="mobile-bar">
+  <a class="brand" href="/"><img class="brand-mark" src="{% static 'img/smartedu-icon.png' %}" alt="">SmartEdu</a>
+  <button class="btn btn-sm btn-outline-light" type="button" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i class="bi bi-list fs-5"></i></button>
+</div>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main menu">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="{% static 'img/smartedu-icon.png' %}" alt="">
+      SmartEdu
+    </a>
+
+    {% if user.role == 'ADMIN' %}
+      <div class="nav-group">Overview</div>
+      <a class="side-link {% if url == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+      <div class="nav-group">People</div>
+      <a class="side-link {% if url == 'admin_students' or url == 'register_student' or url == 'student_edit' %}active{% endif %}" href="{% url 'admin_students' %}"><i class="bi bi-mortarboard"></i>Students</a>
+      <a class="side-link {% if url == 'admin_teachers' or url == 'register_teacher' or url == 'teacher_edit' %}active{% endif %}" href="{% url 'admin_teachers' %}"><i class="bi bi-person-workspace"></i>Teachers</a>
+      <a class="side-link {% if url == 'admin_departments' %}active{% endif %}" href="{% url 'admin_departments' %}"><i class="bi bi-diagram-3"></i>Departments</a>
+      <div class="nav-group">School</div>
+      <a class="side-link {% if url == 'admin_exams' %}active{% endif %}" href="{% url 'admin_exams' %}"><i class="bi bi-journal-text"></i>All exams</a>
+      <a class="side-link {% if url == 'admin_announce' %}active{% endif %}" href="{% url 'admin_announce' %}"><i class="bi bi-megaphone"></i>Announcements</a>
+      <a class="side-link {% if url == 'admin_emails' %}active{% endif %}" href="{% url 'admin_emails' %}"><i class="bi bi-envelope-paper"></i>Guardian emails</a>
+      <a class="side-link" href="/django-admin/"><i class="bi bi-database-gear"></i>Data admin</a>
+    {% elif user.role == 'TEACHER' %}
+      <div class="nav-group">Overview</div>
+      <a class="side-link {% if url == 'teacher_dashboard' %}active{% endif %}" href="{% url 'teacher_dashboard' %}"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+      <div class="nav-group">Exams</div>
+      <a class="side-link {% if url == 'teacher_exams' or url == 'teacher_questions' or url == 'edit_exam' or url == 'answer_key' %}active{% endif %}" href="{% url 'teacher_exams' %}"><i class="bi bi-journal-text"></i>My exams</a>
+      <a class="side-link {% if url == 'create_exam' %}active{% endif %}" href="{% url 'create_exam' %}"><i class="bi bi-plus-circle"></i>Create exam</a>
+      <a class="side-link {% if url == 'material_list' or url == 'material_upload' %}active{% endif %}" href="{% url 'material_list' %}"><i class="bi bi-folder2-open"></i>Study material</a>
+      <a class="side-link {% if url == 'assignment_list' or url == 'assignment_create' or url == 'assignment_detail' or url == 'submission_review' %}active{% endif %}" href="{% url 'assignment_list' %}"><i class="bi bi-journal-richtext"></i>Assignments{% if badge_reviews %}<span class="side-badge">{{ badge_reviews }}</span>{% endif %}</a>
+      <a class="side-link {% if url == 'reattempt_list' %}active{% endif %}" href="{% url 'reattempt_list' %}"><i class="bi bi-arrow-repeat"></i>Re-attempt requests{% if badge_reattempts %}<span class="side-badge">{{ badge_reattempts }}</span>{% endif %}</a>
+      <a class="side-link {% if url == 'teacher_results' or url == 'teacher_results_exam' or url == 'submission_detail' %}active{% endif %}" href="{% url 'teacher_results' %}"><i class="bi bi-check2-square"></i>Results</a>
+      <div class="nav-group">Department</div>
+      <a class="side-link {% if url == 'teacher_students' or url == 'teacher_student_detail' %}active{% endif %}" href="{% url 'teacher_students' %}"><i class="bi bi-people"></i>Students</a>
+      <a class="side-link {% if url == 'teacher_attendance' %}active{% endif %}" href="{% url 'teacher_attendance' %}"><i class="bi bi-calendar-check"></i>Attendance</a>
+      <a class="side-link {% if url == 'teacher_performance' %}active{% endif %}" href="{% url 'teacher_performance' %}"><i class="bi bi-bar-chart-line"></i>Analytics</a>
+    {% else %}
+      <div class="nav-group">Overview</div>
+      <a class="side-link {% if url == 'student_dashboard' %}active{% endif %}" href="{% url 'student_dashboard' %}"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+      <div class="nav-group">Study</div>
+      <a class="side-link {% if url == 'student_exams' or url == 'exam_instructions' or url == 'student_result' %}active{% endif %}" href="{% url 'student_exams' %}"><i class="bi bi-journal-text"></i>My exams</a>
+      <a class="side-link {% if url == 'material_list' %}active{% endif %}" href="{% url 'material_list' %}"><i class="bi bi-folder2-open"></i>Study material</a>
+      <a class="side-link {% if url == 'assignment_list' or url == 'assignment_detail' %}active{% endif %}" href="{% url 'assignment_list' %}"><i class="bi bi-journal-richtext"></i>Assignments{% if badge_assignments %}<span class="side-badge">{{ badge_assignments }}</span>{% endif %}</a>
+      <a class="side-link {% if url == 'reattempt_list' or url == 'reattempt_new' %}active{% endif %}" href="{% url 'reattempt_list' %}"><i class="bi bi-calendar-x"></i>Missed exams{% if badge_missed %}<span class="side-badge">{{ badge_missed }}</span>{% endif %}</a>
+      <a class="side-link {% if url == 'student_performance' %}active{% endif %}" href="{% url 'student_performance' %}"><i class="bi bi-graph-up-arrow"></i>Performance</a>
+      <a class="side-link {% if url == 'student_attendance' %}active{% endif %}" href="{% url 'student_attendance' %}"><i class="bi bi-calendar-check"></i>Attendance</a>
+    {% endif %}
+
+    <div class="nav-group">You</div>
+    <a class="side-link {% if url == 'notification_list' %}active{% endif %}" href="{% url 'notification_list' %}"><i class="bi bi-bell"></i>Notifications{% if unread_notifications %}<span class="side-badge">{{ unread_notifications }}</span>{% endif %}</a>
+
+    <div class="side-user">
+      <div class="who">{{ user.get_full_name|default:user.username }}</div>
+      <div class="mb-2" style="color:#AEB6E6">{{ user.get_role_display }}</div>
+      <a href="{% url 'change_password' %}">Change password</a><a href="{% url 'logout' %}">Sign out</a>
+    </div>
+  </aside>
+
+  <main class="main" id="content">
+    <div class="main-inner">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+{% endwith %}
+<script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

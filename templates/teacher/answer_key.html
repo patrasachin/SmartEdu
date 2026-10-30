@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Answer key{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Answer key</h1><p>{{ exam.title }}, {{ exam.total_marks }} marks</p></div>
+  <div class="page-actions"><button class="btn btn-outline-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button><a class="btn btn-primary" href="{% url 'teacher_questions' exam.id %}">Back</a></div></div>
+<div class="panel">
+  {% for q in questions %}<div class="list-row align-items-start"><div>
+    <div class="fw-semibold">{{ forloop.counter }}. {{ q.text }} <span class="text-muted fw-normal">({{ q.marks }} marks, {{ q.topic }})</span></div>
+    {% if q.qtype == 'MCQ' %}<div class="mt-1">Answer: <strong style="color:var(--green)">{{ q.correct_option }}</strong></div>
+    {% else %}<div class="mt-1"><span class="text-muted">Ideal answer:</span> {{ q.ideal_answer|default:"(none)" }}</div><div><span class="text-muted">Keywords:</span> {{ q.keywords|default:"(none)" }}</div>{% endif %}
+  </div></div>{% empty %}{% include 'partials/empty.html' with text='No questions yet.' %}{% endfor %}
+</div>
+{% endblock %}

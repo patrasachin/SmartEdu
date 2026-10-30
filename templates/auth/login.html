@@ -1,0 +1,39 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Log in | SmartEdu</title>
+<link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/fonts.css' %}" rel="stylesheet"><link href="{% static 'css/app.css' %}" rel="stylesheet">
+<link rel="icon" type="image/png" href="{% static 'img/smartedu-icon.png' %}">
+</head><body>
+<div class="auth">
+<aside class="auth-side">
+  <a class="brand" href="/"><img class="brand-mark" src="{% static 'img/smartedu-icon.png' %}" alt="">SmartEdu</a>
+  <div>
+    <h2>Exams that mark themselves.</h2>
+    <p>Sign in to set papers, sit proctored exams, and see which topics need another look.</p>
+    <div class="auth-sheet">
+      <svg class="tick" viewBox="0 0 28 28" aria-hidden="true"><path d="M4 15l7 7L24 5"/></svg>
+      <strong>Algebra Test</strong><br><span class="text-muted">Written answer marked: 3 of 4 key points.</span><br><span class="pen">Add: mathematics</span>
+    </div>
+  </div>
+  <div style="color:#8C97DE;font-size:.9rem">SmartEdu, an AI-powered education portal</div>
+</aside>
+<main class="auth-main"><div class="auth-card">
+  <h1>Log in</h1>
+  <p class="text-muted mb-4">Students, teachers and admins sign in here.</p>
+  {% for message in messages %}<div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>{% endfor %}
+  <form method="post" novalidate>{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include 'partials/field.html' with field=form.username %}
+    {% include 'partials/field.html' with field=form.password %}
+    <button class="btn btn-primary w-100 py-2 mt-1" type="submit">Log in</button>
+  </form>
+  <div class="d-flex justify-content-between mt-3 small"><a href="{% url 'forgot_password' %}">Forgot your password?</a><a href="/">Back to home</a></div>
+  {% if demo_accounts %}
+  <div class="demo-box"><strong>Demo accounts</strong> <span class="text-muted">(only shown in development)</span><br>
+    {% for role, u, p in demo_accounts %}<button type="button" data-u="{{ u }}" data-p="{{ p }}">{{ role }}: {{ u }}</button>{% endfor %}
+  </div>
+  <script>document.querySelectorAll('.demo-box button').forEach(function(b){b.addEventListener('click',function(){document.getElementById('id_username').value=b.dataset.u;document.getElementById('id_password').value=b.dataset.p;document.querySelector('form button[type=submit]').focus();});});</script>
+  {% endif %}
+</div></main></div></body></html>

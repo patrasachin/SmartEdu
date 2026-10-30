@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Missed exam{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Ask for another chance</h1><p>{{ exam.title }}, {{ exam.subject }}. It closed on {{ exam.closes_at|date:"j M Y, g:i A" }}.</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'reattempt_list' %}">Back</a></div></div>
+<div class="row g-4">
+  <div class="col-lg-7"><div class="panel"><div class="panel-body">
+    <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+      {% include 'partials/field.html' with field=form.reason %}
+      {% include 'partials/field.html' with field=form.proof %}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Send request</button>
+    </form></div></div></div>
+  <div class="col-lg-5"><div class="panel"><div class="panel-head"><h2>How it works</h2></div><div class="panel-body">
+    <ol class="mb-0 ps-3"><li class="mb-2">Explain honestly why you could not attempt the exam.</li><li class="mb-2">Upload proof, such as a medical certificate.</li>
+      <li class="mb-2">Your teacher reads it and decides.</li><li>If approved, <strong>only you</strong> get a new deadline to take the exam. You will be notified.</li></ol>
+  </div></div></div>
+</div>
+{% endblock %}

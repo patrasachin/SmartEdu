@@ -1,0 +1,95 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ exam.title }} | SmartEdu exam</title>
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
+  <link href="{% static 'css/exam.css' %}" rel="stylesheet">
+</head>
+<body class="exam-body">
+{% csrf_token %}
+{{ config|json_script:"exam-config" }}
+
+<header class="exam-bar">
+  <div class="exam-title"><strong>{{ exam.title }}</strong><span>{{ exam.subject }}, {{ questions|length }} questions, {{ total_marks }} marks</span></div>
+  <div class="exam-meters">
+    <div class="meter" title="Violations"><span class="meter-label">Violations</span><span class="pips" id="pips" aria-label="Violations so far">{% for i in max_range %}<span class="pip"></span>{% endfor %}</span></div>
+    <div class="meter"><span class="meter-label">Time left</span><span class="timer" id="timer" role="timer" aria-live="off">--:--</span></div>
+    <button class="btn-submit" id="submitTop" type="button" disabled>Submit</button>
+  </div>
+</header>
+<div class="toast-area" id="toasts" aria-live="assertive"></div>
+
+<div class="exam-layout" id="layout" aria-hidden="true">
+  <main class="exam-main">
+    {% for q in questions %}
+    <section class="qcard" id="qc{{ q.id }}" data-qid="{{ q.id }}" data-type="{{ q.qtype }}">
+      <div class="qhead"><span class="qno">{{ forloop.counter }}</span><span class="qmeta">{{ q.topic|default:"General" }}, {{ q.marks }} mark{{ q.marks|pluralize }}</span></div>
+      <p class="qtext">{{ q.text }}</p>
+      {% if q.qtype == 'MCQ' %}
+        <div class="opts" role="radiogroup" aria-label="Options for question {{ forloop.counter }}">
+          {% for key, text in q.option_list %}
+          <label class="opt"><input type="radio" name="q_{{ q.id }}" value="{{ key }}" {% if q.saved == key %}checked{% endif %}><span class="bubble">{{ key }}</span><span class="otext">{{ text }}</span></label>
+          {% endfor %}
+        </div>
+      {% else %}
+        <textarea name="q_{{ q.id }}" rows="6" placeholder="Write your answer here. Pasting is blocked." spellcheck="true">{{ q.saved }}</textarea>
+        <div class="wc"><span class="wc-n">0</span> words</div>
+      {% endif %}
+    </section>
+    {% endfor %}
+    <div class="submit-row"><button class="btn-submit big" id="submitBottom" type="button" disabled>Finish and submit</button></div>
+  </main>
+
+  <aside class="exam-side">
+    <div class="side-card">
+      <div class="cam"><video id="webcam" autoplay muted playsinline></video><span class="cam-off" id="camOff">Camera off</span></div>
+      <canvas id="snapshot" width="320" height="240" hidden></canvas>
+      <div class="status-rows">
+        <div><i class="bi bi-person-bounding-box"></i> <span id="faceStatus" class="badge muted">Waiting</span></div>
+        <div><i class="bi bi-mic"></i> <span class="mic"><span id="micBar"></span></span></div>
+        <div class="save"><i class="bi bi-cloud-check"></i> <span id="saveStatus">Not saved yet</span></div>
+      </div>
+    </div>
+    <div class="side-card">
+      <div class="side-h">Questions <span id="answeredCount">0/{{ questions|length }}</span></div>
+      <div class="nav-grid" id="qnav">{% for q in questions %}<a href="#qc{{ q.id }}" data-qid="{{ q.id }}">{{ forloop.counter }}</a>{% endfor %}</div>
+    </div>
+  </aside>
+</div>
+
+<!-- Step-by-step start screen -->
+<div class="overlay" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gate-card">
+    <h1 id="gateTitle">Before you begin</h1>
+    <p class="muted">{{ exam.title }}, {{ exam.duration_minutes }} minutes. Two quick checks, then the clock keeps running from {{ seconds_left_min }} min left.</p>
+    <ol class="steps">
+      <li id="stepCam"><span class="s-ic"><i class="bi bi-camera-video"></i></span><div><strong>Camera and microphone</strong><div class="s-msg" id="camMsg">Your browser will ask for permission.</div></div>
+        <button type="button" id="btnCam" class="btn-step">Allow</button></li>
+      <li id="stepFs" class="locked"><span class="s-ic"><i class="bi bi-fullscreen"></i></span><div><strong>Fullscreen and start</strong><div class="s-msg" id="fsMsg">Leaving fullscreen counts as a violation.</div></div>
+        <button type="button" id="btnStart" class="btn-step" disabled>Start exam</button></li>
+    </ol>
+    <p class="rule"><i class="bi bi-exclamation-octagon"></i> The camera is required. If your face is repeatedly missing, the exam will be cancelled after {{ max_violations }} alerts and your teacher will be notified. Other proctoring violations also count toward the limit.</p>
+  </div>
+</div>
+
+<div class="overlay" id="pause" role="alertdialog" aria-modal="true" aria-labelledby="pauseTitle" hidden>
+  <div class="gate-card"><h1 id="pauseTitle">You left fullscreen</h1>
+    <p class="muted" id="pauseMsg">That was recorded as a violation. The timer is still running.</p>
+    <button type="button" class="btn-step primary" id="btnBack">Return to fullscreen</button></div>
+</div>
+
+<div class="overlay" id="ended" role="alertdialog" aria-modal="true" aria-labelledby="endTitle" hidden>
+  <div class="gate-card"><h1 id="endTitle">Exam closed</h1><p class="muted" id="endMsg"></p><a class="btn-step primary" id="endLink" href="{% url 'student_result' submission.id %}">View result</a></div>
+</div>
+
+<dialog id="confirm" class="confirm">
+  <h2>Submit your exam?</h2>
+  <p id="confirmMsg" class="muted"></p>
+  <div class="confirm-actions"><button type="button" class="btn-step" id="confirmNo">Keep working</button><button type="button" class="btn-step primary" id="confirmYes">Submit now</button></div>
+</dialog>
+
+<script src="{% static 'js/exam.js' %}"></script>
+</body>
+</html>

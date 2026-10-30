@@ -1,0 +1,167 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartEdu: proctored exams that mark themselves</title>
+  <meta name="description" content="SmartEdu is a proctored exam portal for schools and colleges. It scores MCQ and written answers, finds weak topics and tracks attendance.">
+  <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
+  <link href="{% static 'css/landing.css' %}" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'img/smartedu-icon.png' %}">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/" aria-label="SmartEdu home">
+    <img class="brand-mark" src="{% static 'img/smartedu-icon.png' %}" alt="">
+    <span>SmartEdu</span>
+  </a>
+  <nav class="topnav" aria-label="Page sections">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#portals">Portals</a>
+  </nav>
+  <a class="btn btn-ink btn-sm" href="/auth/login/">Log in</a>
+</header>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Set the exam. SmartEdu marks it and shows each student what to revise.</h1>
+      <p class="lede">A proctored exam portal for schools and colleges. It scores multiple-choice and written answers, finds weak topics, and keeps attendance and notices in the same place.</p>
+      <div class="cta-row">
+        <a class="btn btn-ink" href="/auth/login/">Log in</a>
+        <a class="btn btn-line" href="#how">See how it works</a>
+      </div>
+      <p class="fine">Admins, teachers and students all sign in on the same page.</p>
+    </div>
+    <figure class="bars">
+      <figcaption>Sample department averages by topic</figcaption>
+      <ul>
+        <li class="ok"><span class="bar-name">Algebra</span><span class="bar" style="--v:82%"></span><span class="bar-val">82%</span></li>
+        <li class="ok"><span class="bar-name">Geometry</span><span class="bar" style="--v:74%"></span><span class="bar-val">74%</span></li>
+        <li class="low"><span class="bar-name">Photosynthesis</span><span class="bar" style="--v:58%"></span><span class="bar-val">58%</span></li>
+        <li class="low"><span class="bar-name">Calculus</span><span class="bar" style="--v:46%"></span><span class="bar-val">46%</span></li>
+      </ul>
+      <p class="bars-key"><span class="swatch"></span>Below the 70% line</p>
+    </figure>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="section-head">
+      <h2>From question paper to revision plan</h2>
+      <p>Everything that happens between "publish exam" and "what should I study next".</p>
+    </div>
+
+    <div class="feature feature-marking">
+      <h3>Marks both kinds of answers</h3>
+      <div class="two-col">
+        <div>
+          <h4>Multiple choice</h4>
+          <p>Each answer is checked against the teacher's key. A right answer earns the full marks for that question.</p>
+        </div>
+        <div>
+          <h4>Written answers</h4>
+          <p>The answer is compared with the teacher's ideal answer, and keywords add a bonus. Partial credit is possible, and the student gets a line of feedback. If the grader can't judge an answer, it is flagged for manual review.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature feature-weak">
+      <div class="feature-text">
+        <h3>Finds weak topics</h3>
+        <p>A topic is flagged when a student gets half or more of its questions wrong. Each weak topic comes with a revision resource, and teachers see every student who scored below 70%.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Proctoring -->
+  <section class="band" id="proctoring" aria-labelledby="proc-title">
+    <div class="band-inner">
+      <div class="band-text">
+        <h2 id="proc-title">Proctored in the browser, with three strikes</h2>
+        <p>Students must allow their camera and microphone, and the exam runs in fullscreen. Leaving fullscreen, switching tabs or windows, and copy, paste or right-click attempts are blocked or logged with a time and reason. The third violation cancels the exam.</p>
+        <p class="band-fine">These are browser-based checks. They discourage and record, but they can't catch everything, so teachers review the log.</p>
+      </div>
+
+      <div class="proctor">
+        <p class="proctor-title">Four-strike rule</p>
+        <p class="violation-label">Examples of violations</p>
+        <ul class="violation-topics" aria-label="Examples of proctoring violations">
+          <li>Switch tab</li>
+          <li>Exit fullscreen</li>
+          <li>Paste text</li>
+          <li>Not face detected<li>
+        </ul>
+        <p class="proctor-state">Four proctoring violations cancel the exam. The teacher is notified and can review the violation log.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" id="how">
+    <div class="section-head">
+      <h2>How an exam runs</h2>
+    </div>
+    <ol class="steps">
+      <li>
+        <h3>The teacher builds the exam</h3>
+        <p>Add questions, marks, topics and answer keys, then publish it for a department.</p>
+      </li>
+      <li>
+        <h3>The student sits it</h3>
+        <p>They read the instructions, allow camera and microphone, and answer in fullscreen.</p>
+      </li>
+      <li>
+        <h3>SmartEdu marks it</h3>
+        <p>When the exam is submitted, every answer is scored and the student sees feedback on each one.</p>
+      </li>
+      <li>
+        <h3>Everyone sees what's next</h3>
+        <p>Students get their weak topics and revision links. Teachers see who needs help.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Portals -->
+  <section class="section section-tight" id="portals">
+    <div class="section-head">
+      <h2>One sign-in, three portals</h2>
+    </div>
+    <div class="portals">
+      <div class="portal">
+        <h3>Student</h3>
+        <p>Take exams, read feedback on every answer, open study material from teachers, check attendance, follow weak topics and revision links, and get notifications.</p>
+      </div>
+      <div class="portal">
+        <h3>Teacher</h3>
+        <p>Create exams and questions, set answer keys, review AI-scored results, share study material with a department, mark attendance, and see which students are below 70%.</p>
+      </div>
+      <div class="portal">
+        <h3>Admin</h3>
+        <p>Register students and teachers, manage departments, and see everyone in the portal at a glance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing call -->
+  <section class="closing">
+    <h2>Ready to run your next exam?</h2>
+    <a class="btn btn-ink" href="/auth/login/">Log in</a>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <p><strong>SmartEdu</strong> is an AI-powered education portal prototype.</p>
+  <nav aria-label="Account">
+    <a href="/auth/login/">Log in</a>
+    <a href="/auth/forgot-password/">Forgot password</a>
+  </nav>
+</footer>
+
+<script src="{% static 'js/landing.js' %}"></script>
+</body>
+</html>

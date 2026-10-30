@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Questions{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ exam.title }}</h1><p>{{ exam.subject }} for {{ exam.department }}, Semester {{ exam.semester }}, {{ exam.questions.count }} question{{ exam.questions.count|pluralize }}, {{ exam.total_marks }} marks.
+    {% if exam.status == 'PUBLISHED' %}<span class="pill pill-ok">Published</span>{% else %}<span class="pill pill-warn">Draft</span>{% endif %}</p></div>
+  <div class="page-actions">
+    <a class="btn btn-outline-primary" href="{% url 'edit_exam' exam.id %}">Edit details</a>
+    <a class="btn btn-outline-primary" href="{% url 'answer_key' exam.id %}">Answer key</a>
+    <form method="post" action="{% url 'toggle_publish' exam.id %}" {% if exam.status != 'PUBLISHED' %}data-confirm="Publish this exam and notify every student in {{ exam.department }}, Semester {{ exam.semester }}?"{% endif %}>{% csrf_token %}
+      <button class="btn {% if exam.status == 'PUBLISHED' %}btn-outline-danger{% else %}btn-success{% endif %}" type="submit">{% if exam.status == 'PUBLISHED' %}Move back to draft{% else %}Publish and notify{% endif %}</button></form>
+  </div>
+</div>
+{% if locked %}<div class="alert alert-info">Students have started this exam, so questions are locked.</div>{% endif %}
+
+<div class="row g-4">
+  {% if not locked %}
+  <div class="col-lg-5"><div class="panel"><div class="panel-head"><h2>Add a question</h2></div><div class="panel-body">
+    <form method="post" novalidate id="qForm">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="row"><div class="col-6">{% include 'partials/field.html' with field=form.qtype %}</div><div class="col-6">{% include 'partials/field.html' with field=form.marks %}</div></div>
+      {% include 'partials/field.html' with field=form.topic %}
+      {% include 'partials/field.html' with field=form.text %}
+      <div id="mcqFields">
+        {% include 'partials/field.html' with field=form.option_a %}{% include 'partials/field.html' with field=form.option_b %}
+        {% include 'partials/field.html' with field=form.option_c %}{% include 'partials/field.html' with field=form.option_d %}
+        {% include 'partials/field.html' with field=form.correct_option %}
+      </div>
+      <div id="subFields">{% include 'partials/field.html' with field=form.ideal_answer %}{% include 'partials/field.html' with field=form.keywords %}</div>
+      <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg"></i> Add question</button>
+    </form>
+  </div></div></div>
+  {% endif %}
+  <div class="{% if locked %}col-12{% else %}col-lg-7{% endif %}">
+    <div class="panel"><div class="panel-head"><h2>Questions</h2></div>
+    {% for q in questions %}
+      <div class="list-row align-items-start">
+        <div>
+          <div class="fw-semibold">{{ forloop.counter }}. {{ q.text }}</div>
+          <div class="small text-muted"><span class="pill pill-info">{{ q.get_qtype_display }}</span> {{ q.topic }}, {{ q.marks }} mark{{ q.marks|pluralize }}</div>
+          {% if q.qtype == 'MCQ' %}<div class="small mt-1">A) {{ q.option_a }} &nbsp; B) {{ q.option_b }} &nbsp; C) {{ q.option_c }} &nbsp; D) {{ q.option_d }} &nbsp; <strong style="color:var(--green)">Correct: {{ q.correct_option }}</strong></div>
+          {% else %}<div class="small mt-1 text-muted">Keywords: {{ q.keywords|default:"none" }}</div>{% endif %}
+        </div>
+        {% if not locked %}<form method="post" action="{% url 'delete_question' q.id %}" data-confirm="Remove this question?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" aria-label="Remove question {{ forloop.counter }}"><i class="bi bi-trash"></i></button></form>{% endif %}
+      </div>
+    {% empty %}{% include 'partials/empty.html' with icon='bi-question-circle' text='No questions yet. Add the first one.' %}{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function(){var t=document.getElementById('id_qtype');if(!t)return;
+function sync(){var m=t.value==='MCQ';document.getElementById('mcqFields').style.display=m?'':'none';document.getElementById('subFields').style.display=m?'none':'';}
+t.addEventListener('change',sync);sync();})();
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Hello, {{ user.first_name|default:user.username }}</h1><p>{{ department }}, Semester {{ semester }}{% if analysis.total_exams %}. Your average is {{ analysis.avg_percentage }}%.{% endif %}</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{% url 'student_exams' %}">My exams</a></div>
+</div>
+
+{% if open_now %}
+<div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <span><i class="bi bi-alarm"></i> <strong>{{ open_now|length }} exam{{ open_now|length|pluralize }} open now:</strong> {% for r in open_now %}{{ r.exam.title }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+  <a class="btn btn-sm btn-primary" href="{% url 'exam_instructions' open_now.0.exam.id %}">Read the rules and start</a>
+</div>
+{% endif %}
+
+{% if missed %}
+<div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <span><i class="bi bi-exclamation-triangle"></i> <strong>You missed {{ missed|length }} exam{{ missed|length|pluralize }}:</strong> {% for r in missed %}{{ r.exam.title }}{% if not forloop.last %}, {% endif %}{% endfor %}. Tell your teacher why and upload proof.</span>
+  <a class="btn btn-sm btn-danger" href="{% url 'reattempt_list' %}">Give reason and proof</a></div>
+{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Average score</div><div class="value">{% if analysis.total_exams %}{{ analysis.avg_percentage }}%{% else %}-{% endif %}</div><div class="sub">{{ analysis.trend }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile {% if att.total and att.percent < 75 %}red{% else %}green{% endif %}"><div class="label">Attendance</div><div class="value">{% if att.total %}{{ att.percent }}%{% else %}-{% endif %}</div><div class="sub">{{ att.absent }} absent, {{ att.late }} late</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Exams taken</div><div class="value">{{ analysis.total_exams }}</div><div class="sub">{% if analysis.best %}Best {{ analysis.best }}%{% else %}None yet{% endif %}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile {% if weak_topics %}red{% else %}green{% endif %}"><div class="label">Topics to revise</div><div class="value">{{ weak_topics|length }}</div><div class="sub">{% if weak_topics %}Found by the AI{% else %}Nothing flagged{% endif %}</div></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel mb-4">
+      <div class="panel-head"><h2>Exams to take</h2><a href="{% url 'student_exams' %}" class="small">See all</a></div>
+      {% for r in todo %}
+        <div class="list-row">
+          <div><div class="fw-semibold">{{ r.exam.title }}</div><div class="small text-muted">{{ r.exam.subject }}, {{ r.exam.duration_minutes }} min, {{ r.exam.scheduled_at|date:"D j M, g:i A" }}</div></div>
+          <div class="d-flex align-items-center gap-2">{% include 'partials/status_pill.html' with state=r.state %}
+            <a class="btn btn-sm {% if r.state == 'open' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exam_instructions' r.exam.id %}">{% if r.state == 'open' %}Start{% else %}Details{% endif %}</a></div>
+        </div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-journal-check' text='No exams waiting for you.' %}{% endfor %}
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Recent results</h2><a href="{% url 'student_performance' %}" class="small">Performance</a></div>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Exam</th><th class="text-end">Score</th><th>Understanding</th></tr></thead>
+        <tbody>{% for r in reports %}
+          <tr class="{% if r.percentage < 70 %}row-low{% endif %}"><td>{{ r.exam.title }}</td><td class="text-end num">{{ r.percentage|floatformat:1 }}%</td>
+          <td><span class="pill {% if r.percentage >= 70 %}pill-ok{% else %}pill-low{% endif %}">{{ r.understanding_level }}</span></td></tr>
+        {% empty %}<tr><td colspan="3"><div class="empty">Results show up here after your first exam.</div></td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel mb-4">
+      <div class="panel-head"><h2>Weak topics</h2></div>
+      <div class="panel-body">
+        {% for w in weak_topics %}<span class="chip" title="{{ w.subject }}">{{ w.topic }}</span>{% empty %}<span class="text-muted">None flagged. Nice work.</span>{% endfor %}
+        {% if weak_topics %}<p class="mt-2 mb-0 small text-muted">The AI flags a topic when you miss half or more of its questions. <a href="{% url 'student_performance' %}">See revision links</a>.</p>{% endif %}
+      </div>
+    </div>
+    <div class="panel mb-4">
+      <div class="panel-head"><h2>Assignments to do</h2><a href="{% url 'assignment_list' %}" class="small">See all</a></div>
+      {% for a in assignments_due %}<div class="list-row"><div><div class="fw-semibold">{{ a.title }}</div><div class="small text-muted">{{ a.subject }}{% if a.due_date %}, due {{ a.due_date|date:"j M, g:i A" }}{% endif %}</div></div>
+        <a class="btn btn-sm btn-primary" href="{% url 'assignment_detail' a.id %}">Submit</a></div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-journal-check' text='No assignments waiting.' %}{% endfor %}
+    </div>
+    <div class="panel mb-4">
+      <div class="panel-head"><h2>New study material</h2><a href="{% url 'material_list' %}" class="small">See all</a></div>
+      {% for m in materials %}<div class="list-row"><div class="d-flex align-items-center gap-3"><span class="fk {{ m.css }}" style="width:36px;height:36px;font-size:1.2rem"><i class="bi {{ m.icon }}"></i></span>
+        <div><div class="fw-semibold">{{ m.title }}</div><div class="small text-muted">{{ m.subject }}, {{ m.created_at|date:"j M" }}</div></div></div>
+        {% if m.file %}<a class="btn btn-sm btn-outline-primary" href="{% url 'material_file' m.id %}" target="_blank" rel="noopener">Open</a>{% else %}<a class="btn btn-sm btn-outline-primary" href="{{ m.link }}" target="_blank" rel="noopener noreferrer">Open</a>{% endif %}</div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-folder2-open' text='No study material yet.' %}{% endfor %}
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Latest notifications</h2><a href="{% url 'notification_list' %}" class="small">Open</a></div>
+      {% for n in recent_notifications %}<div class="list-row"><div><div class="fw-semibold">{{ n.title }}</div><div class="small text-muted">{{ n.message|truncatechars:80 }}</div></div></div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-bell' text='Nothing new.' %}{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

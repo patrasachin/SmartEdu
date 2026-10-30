@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Performance{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Performance</h1><p>{{ analysis.understanding }}</p></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Exam average</div><div class="value">{% if series.exam_avg is not None %}{{ series.exam_avg }}%{% else %}-{% endif %}</div><div class="sub">{{ series.exam_count }} exam{{ series.exam_count|pluralize }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile red"><div class="label">Assignment rating</div><div class="value">{% if series.rating_avg is not None %}{{ series.rating_avg }}<span class="fs-5 text-muted"> / 5</span>{% else %}-{% endif %}</div><div class="sub">{{ series.assignment_count }} reviewed</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile green"><div class="label">Overall</div><div class="value">{% if series.overall is not None %}{{ series.overall }}%{% else %}-{% endif %}</div><div class="sub">Exams and assignments together</div></div></div>
+  <div class="col-6 col-lg-3"><div class="tile"><div class="label">Trend</div><div class="value fs-3 pt-2">{{ analysis.trend }}</div></div></div>
+</div>
+<div class="panel mb-4"><div class="panel-head"><h2>My performance graph</h2><span class="small text-muted">Exam results and assignment ratings over time</span></div><div class="panel-body">
+  {% if series.has_data %}<div class="chart-box" style="height:320px"><canvas id="combined"></canvas></div>
+  <p class="small text-muted mt-2 mb-0">An assignment rating of 5 stars is shown as 100%. The red dashed line is the 70% mark.</p>
+  {% else %}{% include 'partials/empty.html' with icon='bi-graph-up' text='Take an exam or get an assignment reviewed to see your graph.' %}{% endif %}
+</div></div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel mb-4"><div class="panel-head"><h2>Assignment ratings</h2></div>
+      {% for r in rated %}<div class="list-row"><div><div class="fw-semibold">{{ r.assignment.title }}</div><div class="small text-muted">{{ r.assignment.subject }}{% if r.review %}. {{ r.review|truncatechars:70 }}{% endif %}</div></div>{% include 'partials/stars.html' with rating=r.rating %}</div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-star' text='No reviewed assignments yet.' %}{% endfor %}</div>
+    <div class="panel"><div class="panel-head"><h2>Exam history</h2></div><div class="table-wrap"><table class="table">
+      <thead><tr><th>Exam</th><th class="text-end">Score</th><th>Understanding</th><th>Date</th></tr></thead>
+      <tbody>{% for r in reports %}<tr class="{% if r.percentage < 70 %}row-low{% endif %}"><td>{{ r.exam.title }}</td><td class="text-end num">{{ r.percentage|floatformat:1 }}%</td><td>{{ r.understanding_level }}</td><td class="text-nowrap">{{ r.generated_at|date:"j M Y" }}</td></tr>
+      {% empty %}<tr><td colspan="4"><div class="empty">No results yet.</div></td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel mb-4"><div class="panel-head"><h2>Weak topics</h2></div>
+      {% for w in weak_topics %}
+        <div class="list-row"><div><div class="fw-semibold">{{ w.topic }}</div><div class="small text-muted">{{ w.subject }}, flagged {{ w.failure_count }} time{{ w.failure_count|pluralize }}, topic score {{ w.avg_score_in_topic|floatformat:0 }}%</div></div>
+          {% if w.is_improved %}<span class="pill pill-ok">Improved</span>{% else %}<span class="pill pill-low">Needs work</span>{% endif %}</div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-emoji-smile' text='No weak topics. Keep it up.' %}{% endfor %}
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Revision links</h2></div>
+      {% for r in recommendations %}<div class="list-row"><div><div class="fw-semibold">{{ r.title }}</div><div class="small text-muted">{{ r.topic }}. {{ r.description }}</div></div>
+        <a class="btn btn-sm btn-outline-primary" href="{{ r.resource_link }}" target="_blank" rel="noopener">Open</a></div>
+      {% empty %}{% include 'partials/empty.html' with icon='bi-link-45deg' text='Links appear when the AI finds a weak topic.' %}{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{% load static %}
+{{ combined|json_script:"chart-data" }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>var d=JSON.parse(document.getElementById('chart-data').textContent);SmartChart.combined('combined',d);</script>
+{% endblock %}

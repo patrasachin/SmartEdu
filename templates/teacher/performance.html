@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Analytics</h1><p>{{ total }} completed submission{{ total|pluralize }} across your exams.</p></div></div>
+{% if not total %}<div class="panel">{% include 'partials/empty.html' with icon='bi-bar-chart-line' text='Charts appear after students submit an exam.' %}</div>{% else %}
+<div class="row g-4 mb-4">
+  <div class="col-lg-7"><div class="panel h-100"><div class="panel-head"><h2>Average score by exam</h2></div><div class="panel-body"><div class="chart-box"><canvas id="exams"></canvas></div></div></div></div>
+  <div class="col-lg-5"><div class="panel h-100"><div class="panel-head"><h2>Score spread</h2></div><div class="panel-body"><div class="chart-box"><canvas id="dist"></canvas></div></div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-5"><div class="panel h-100"><div class="panel-head"><h2>Topics students struggle with</h2></div><div class="panel-body">
+    {% if chart.topics.labels %}<div class="chart-box"><canvas id="topics"></canvas></div>{% else %}{% include 'partials/empty.html' with icon='bi-emoji-smile' text='No weak topics right now.' %}{% endif %}</div></div></div>
+  <div class="col-lg-7"><div class="panel h-100"><div class="panel-head"><h2>Who needs help</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Student</th><th>Topic</th><th class="text-end">Flagged</th><th class="text-end">Topic score</th></tr></thead><tbody>
+    {% for w in weak_topics %}<tr><td>{{ w.student.get_full_name|default:w.student.username }}</td><td><span class="chip m-0">{{ w.topic }}</span></td><td class="text-end num">{{ w.failure_count }}x</td><td class="text-end num">{{ w.avg_score_in_topic|floatformat:0 }}%</td></tr>
+    {% empty %}<tr><td colspan="4"><div class="empty">Nobody is flagged.</div></td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>{% endif %}
+{% endblock %}
+{% block extra_js %}{% load static %}
+{{ chart|json_script:"chart-data" }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>var d=JSON.parse(document.getElementById('chart-data').textContent);
+SmartChart.percentBar('exams',d.exams.labels,d.exams.values,d.threshold);
+SmartChart.simpleBar('dist',d.dist.labels,d.dist.values);
+SmartChart.simpleBar('topics',d.topics.labels,d.topics.values,'#D32F4B');</script>
+{% endblock %}

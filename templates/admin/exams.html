@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}All exams{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>All exams</h1><p>Read-only view across every teacher.</p></div></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Exam</th><th>Department</th><th>Teacher</th><th>Opens</th><th class="text-end">Questions</th><th class="text-end">Submitted</th><th class="text-end">Average</th><th>Status</th></tr></thead><tbody>
+  {% for e in exams %}<tr><td class="fw-semibold">{{ e.title }}<div class="small text-muted fw-normal">{{ e.subject }}</div></td><td>{{ e.department }}<div class="small text-muted">Semester {{ e.semester }}</div></td><td>{{ e.created_by.get_full_name|default:e.created_by.username }}</td>
+    <td class="text-nowrap">{{ e.scheduled_at|date:"j M Y, g:i A" }}</td><td class="text-end num">{{ e.q_count }}</td><td class="text-end num">{{ e.done }}</td>
+    <td class="text-end num">{% if e.avg is not None %}{{ e.avg|floatformat:1 }}%{% else %}-{% endif %}</td>
+    <td>{% if e.status == 'PUBLISHED' %}<span class="pill pill-ok">Published</span>{% else %}<span class="pill pill-warn">Draft</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="8">{% include 'partials/empty.html' with icon='bi-journal' text='No exams yet.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

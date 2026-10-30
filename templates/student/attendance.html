@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Attendance</h1><p>Late counts as attended.</p></div></div>
+<div class="row g-4 mb-4">
+  <div class="col-md-4"><div class="panel h-100"><div class="panel-body d-flex align-items-center gap-3">
+    <div class="ring {% if att.percent < 75 %}low{% else %}ok{% endif %}" style="--p:{{ att.percent }}"><span>{{ att.percent }}%</span></div>
+    <div><div class="fw-semibold">Overall</div>{% if att.total and att.percent < 75 %}<span class="pill pill-low">Below 75%</span>{% elif att.total %}<span class="pill pill-ok">On track</span>{% else %}<span class="text-muted">No records yet</span>{% endif %}</div>
+  </div></div></div>
+  <div class="col-4 col-md-2"><div class="tile green"><div class="label">Present</div><div class="value">{{ att.present }}</div></div></div>
+  <div class="col-4 col-md-2"><div class="tile"><div class="label">Late</div><div class="value">{{ att.late }}</div></div></div>
+  <div class="col-4 col-md-2"><div class="tile red"><div class="label">Absent</div><div class="value">{{ att.absent }}</div></div></div>
+</div>
+<div class="panel"><div class="table-wrap"><table class="table">
+  <thead><tr><th>Date</th><th>Department</th><th>Status</th></tr></thead>
+  <tbody>{% for a in attendances %}<tr><td>{{ a.date|date:"D, j M Y" }}</td><td>{{ a.department }}, Semester {{ a.semester }}</td>
+    <td><span class="pill {% if a.status == 'PRESENT' %}pill-ok{% elif a.status == 'LATE' %}pill-warn{% else %}pill-low{% endif %}">{{ a.get_status_display }}</span></td></tr>
+  {% empty %}<tr><td colspan="3">{% include 'partials/empty.html' with icon='bi-calendar' text='No attendance has been marked for you yet.' %}</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

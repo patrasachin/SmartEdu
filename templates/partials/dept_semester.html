@@ -1,0 +1,7 @@
+{% load static %}
+<div class="row">
+  <div class="col-md-8">{% include 'partials/field.html' with field=form.department force_required=1 %}</div>
+  <div class="col-md-4">{% include 'partials/field.html' with field=form.semester force_required=1 %}</div>
+</div>
+{{ DEPT_SEM_MAP|json_script:"dept-sem-map" }}
+<script src="{% static 'js/dept_semester.js' %}"></script>

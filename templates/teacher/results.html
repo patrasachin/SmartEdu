@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Results{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{% if exam %}{{ exam.title }}{% else %}Results{% endif %}</h1><p>Scores come from the AI engine. Open a submission to review or change marks.</p></div>
+  <div class="page-actions">
+    {% if exam %}<form method="post" action="{% url 'auto_evaluate' exam.id %}" data-confirm="Re-run AI scoring for every submission? Marks you edited by hand will be replaced.">{% csrf_token %}<button class="btn btn-outline-primary"><i class="bi bi-arrow-repeat"></i> Re-run AI scoring</button></form>{% endif %}
+  </div></div>
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <form method="get" class="d-flex gap-2 flex-wrap">
+    {% if exam %}<a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_results' %}">All exams</a>{% else %}
+    <select class="form-select form-select-sm" style="width:auto" onchange="if(this.value)location=this.value"><option value="">Pick an exam</option>{% for e in exams %}<option value="{% url 'teacher_results_exam' e.id %}">{{ e.title }}</option>{% endfor %}</select>{% endif %}
+    <a class="btn btn-sm {% if not filter %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?">All</a>
+    <a class="btn btn-sm {% if filter == 'low' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?filter=low">Below 70%</a>
+    <a class="btn btn-sm {% if filter == 'cancelled' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?filter=cancelled">Cancelled</a>
+  </form></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Student</th><th>Exam</th><th class="text-end">Score</th><th class="text-end">%</th><th class="text-end">Violations</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for s in submissions %}<tr class="{% if s.is_flagged_low and s.is_completed %}row-low{% endif %}">
+    <td class="fw-semibold">{{ s.student.get_full_name|default:s.student.username }}</td><td>{{ s.exam.title }}</td>
+    <td class="text-end num">{% if s.is_completed %}{{ s.total_score|floatformat:"-1" }}/{{ s.exam.total_marks }}{% else %}-{% endif %}</td>
+    <td class="text-end num">{% if s.is_completed %}{{ s.percentage|floatformat:1 }}%{% else %}-{% endif %}</td>
+    <td class="text-end num">{{ s.violation_count }}</td>
+    <td>{% if s.is_cancelled %}<span class="pill pill-low">Cancelled</span>{% elif not s.is_completed %}<span class="pill pill-warn">In progress</span>{% elif s.is_flagged_low %}<span class="pill pill-low">Below 70%</span>{% else %}<span class="pill pill-ok">Good</span>{% endif %}</td>
+    <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'submission_detail' s.id %}">Open</a></td></tr>
+  {% empty %}<tr><td colspan="7">{% include 'partials/empty.html' with icon='bi-inbox' text='No submissions match.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% load static %}
+<select class="form-select" style="max-width:340px" name="department" aria-label="Department">
+  {% if not no_all %}<option value="">All departments</option>{% endif %}
+  {% for d in departments %}<option value="{{ d }}" {% if d == dept %}selected{% endif %}>{{ d }}</option>{% endfor %}
+</select>
+<select class="form-select" style="max-width:170px" name="semester" aria-label="Semester">
+  {% if not no_all %}<option value="">All semesters</option>{% endif %}
+  {% for n in semesters %}<option value="{{ n }}" {% if n|stringformat:"s" == sem|stringformat:"s" %}selected{% endif %}>Semester {{ n }}</option>{% endfor %}
+</select>
+{{ DEPT_SEM_MAP|json_script:"dept-sem-map" }}
+<script src="{% static 'js/dept_semester.js' %}"></script>

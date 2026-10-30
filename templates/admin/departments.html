@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Departments{% endblock %}
+{% block content %}{% url 'admin_students' as students_url %}
+<div class="page-head"><div><h1>Departments</h1><p>Every department and semester that has students, with its exams, average score and attendance.</p></div></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Department</th><th>Semester</th><th class="text-end">Students</th><th class="text-end">Exams</th><th class="text-end">Average score</th><th class="text-end">Attendance</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td class="fw-semibold">{{ r.department }}</td><td>Semester {{ r.semester }}</td><td class="text-end num">{{ r.n }}</td><td class="text-end num">{{ r.exams }}</td>
+    <td class="text-end num">{% if r.avg is not None %}<span class="pill {% if r.avg < 70 %}pill-low{% else %}pill-ok{% endif %}">{{ r.avg }}%</span>{% else %}-{% endif %}</td>
+    <td class="text-end num">{% if r.att is not None %}{{ r.att }}%{% else %}-{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="6">{% include 'partials/empty.html' with icon='bi-diagram-3' text='Register a student to see departments here.' href=students_url cta='Register student' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

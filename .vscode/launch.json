@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SmartEdu: run server (F5)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["runserver", "8000"],
+      "django": true,
+      "justMyCode": true
+    },
+    {
+      "name": "SmartEdu: reset demo data",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["seed_demo", "--reset"],
+      "django": true
+    },
+    {
+      "name": "SmartEdu: run tests",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["test"],
+      "django": true
+    }
+  ]
+}

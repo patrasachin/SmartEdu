@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Delete {{ person.get_role_display|lower }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Delete {{ person.get_full_name|default:person.username }}?</h1><p>This cannot be undone.</p></div></div>
+<div class="panel" style="max-width:620px"><div class="panel-body">
+  <div class="alert alert-danger"><strong>Deleting {{ person.get_role_display|lower }} {{ person.username }} also permanently removes:</strong>
+    <ul class="mb-0 mt-2">{% for label, n in impact %}<li><strong>{{ n }}</strong> {{ label }}</li>{% endfor %}</ul></div>
+  <p class="text-muted">If you only want to stop them logging in, use <strong>Switch off</strong> instead. It keeps all the records.</p>
+  <form method="post" class="d-flex gap-2">{% csrf_token %}
+    <button class="btn btn-danger" type="submit"><i class="bi bi-trash"></i> Yes, delete permanently</button>
+    <a class="btn btn-outline-primary" href="{% url back %}">Cancel</a>
+  </form>
+</div></div>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% if state == 'open' %}<span class="pill pill-ok">Open now</span>
+{% elif state == 'upcoming' %}<span class="pill pill-info">Upcoming</span>
+{% elif state == 'done' %}<span class="pill pill-muted">Completed</span>
+{% elif state == 'missed' %}<span class="pill pill-warn">Missed</span>
+{% elif state == 'cancelled' %}<span class="pill pill-low">Cancelled</span>{% endif %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Assignments{% endblock %}
+{% block content %}
+{% url 'assignment_create' as create_url %}
+<div class="page-head"><div><h1>Assignments</h1><p>Topics you have sent. Open one to see who submitted, then review and rate.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{{ create_url }}"><i class="bi bi-plus-lg"></i> New assignment</a></div></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Topic</th><th>Department and semester</th><th>Due</th><th class="text-end">Submitted</th><th class="text-end">Reviewed</th><th class="text-end">Average</th><th></th></tr></thead><tbody>
+  {% for a in assignments %}<tr>
+    <td class="fw-semibold">{{ a.title }}<div class="small text-muted fw-normal">{{ a.subject }}</div></td><td>{{ a.department }}<div class="small text-muted">Semester {{ a.semester }}</div></td>
+    <td class="text-nowrap">{% if a.due_date %}{{ a.due_date|date:"j M, g:i A" }}{% else %}-{% endif %}</td>
+    <td class="text-end num">{{ a.done }} / {{ a.total }}</td><td class="text-end num">{{ a.reviewed }}</td>
+    <td class="text-end">{% if a.avg %}{% include 'partials/stars.html' with rating=a.avg_int %}{% else %}-{% endif %}</td>
+    <td class="text-end text-nowrap"><a class="btn btn-sm btn-primary" href="{% url 'assignment_detail' a.id %}">Open</a>
+      <form class="d-inline" method="post" action="{% url 'assignment_delete' a.id %}" data-confirm="Delete &quot;{{ a.title }}&quot; and all its submissions?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" aria-label="Delete {{ a.title }}"><i class="bi bi-trash"></i></button></form></td>
+  </tr>{% empty %}<tr><td colspan="7">{% include 'partials/empty.html' with icon='bi-journal-richtext' text='You have not sent an assignment yet.' href=create_url cta='Send your first assignment' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

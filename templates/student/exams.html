@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}My exams{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>My exams</h1><p>Every published exam for your department and semester.</p></div></div>
+<div class="panel"><div class="table-wrap"><table class="table table-hover">
+  <thead><tr><th>Exam</th><th>Subject</th><th>Opens</th><th>Closes</th><th>Status</th><th class="text-end">Score</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td class="fw-semibold">{{ r.exam.title }}</td><td>{{ r.exam.subject }}</td>
+      <td class="text-nowrap">{{ r.exam.scheduled_at|date:"j M, g:i A" }}</td><td class="text-nowrap">{% if r.exam.closes_at %}{{ r.exam.closes_at|date:"j M, g:i A" }}{% else %}-{% endif %}<div class="small text-muted">{{ r.exam.duration_minutes }} min</div></td>
+      <td>{% include 'partials/status_pill.html' with state=r.state %}</td>
+      <td class="text-end num">{% if r.state == 'done' %}<span class="{% if r.submission.is_flagged_low %}text-danger{% endif %} fw-semibold">{{ r.submission.percentage|floatformat:1 }}%</span>{% else %}-{% endif %}</td>
+      <td class="text-end">
+        {% if r.state == 'done' or r.state == 'cancelled' %}<a class="btn btn-sm btn-outline-primary" href="{% url 'student_result' r.submission.id %}">View result</a>
+        {% elif r.state == 'open' %}<a class="btn btn-sm btn-primary" href="{% url 'exam_instructions' r.exam.id %}">{% if r.submission %}Resume{% elif r.extension %}Take again{% else %}Start{% endif %}</a>
+        {% elif r.state == 'missed' %}<a class="btn btn-sm btn-outline-danger" href="{% url 'exam_instructions' r.exam.id %}">{% if r.request %}{{ r.request.get_status_display }}{% else %}Give reason{% endif %}</a>
+        {% else %}<a class="btn btn-sm btn-outline-primary" href="{% url 'exam_instructions' r.exam.id %}">Details</a>{% endif %}
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="7">{% include 'partials/empty.html' with icon='bi-journal' text='No exams have been published for your department and semester yet.' %}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

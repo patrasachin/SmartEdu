@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Share study material{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Share study material</h1><p>Upload a file or paste a link. Students of the department and semester you pick will see it right away.</p></div>
+  <div class="page-actions"><a class="btn btn-outline-primary" href="{% url 'material_list' %}">Back</a></div></div>
+<div class="panel" style="max-width:780px"><div class="panel-body">
+  <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="row">
+      <div class="col-md-8">{% include 'partials/field.html' with field=form.title %}</div>
+      <div class="col-md-4">{% include 'partials/field.html' with field=form.subject %}</div>
+    </div>
+    {% include 'partials/field.html' with field=form.description %}
+    {% include 'partials/dept_semester.html' %}
+    <div class="row">
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.file %}</div>
+      <div class="col-md-6">{% include 'partials/field.html' with field=form.link %}</div>
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Share with students</button>
+  </form>
+</div></div>
+{% endblock %}
