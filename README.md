@@ -4,7 +4,7 @@ Proctored online exams, assignments, attendance and study material for colleges.
 students sit proctored exams and submit work, the AI engine marks answers and finds weak topics, and guardians get
 exam results and attendance by email. Admins manage people and departments.
 
-Built with Django 5.2, PostgreSQL, Bootstrap 5 (bundled, works offline), scikit-learn and OpenCV (optional).
+Built with Django 5.2, SQLite, Bootstrap 5 (bundled, works offline), scikit-learn and OpenCV (optional).
 
 ## What changed in this version: departments and semesters
 
@@ -26,17 +26,11 @@ Earlier additions are all still here: assignments with star ratings, missed-exam
 **Before you start:** install [Python 3.10 to 3.13](https://www.python.org/downloads/) (tick "Add python.exe to PATH" on Windows)
 and [VS Code](https://code.visualstudio.com/) with the **Python** extension.
 
-1. **Install PostgreSQL** and create a database named `smartedu`. Keep the database server running while you use the app.
+1. Django uses SQLite by default, so no separate database server is needed.
 2. **Unzip** `SmartEdu.zip`. You get a folder called `SmartEdu` with `manage.py` inside it.
 3. In VS Code choose **File > Open Folder** and pick that `SmartEdu` folder (the one that contains `manage.py`).
-4. Create a `.env` file in the project root with your PostgreSQL credentials:
-   ```env
-   SMARTEDU_DB_NAME=smartedu
-   SMARTEDU_DB_USER=postgres
-   SMARTEDU_DB_PASSWORD=your-postgres-password
-   SMARTEDU_DB_HOST=localhost
-   SMARTEDU_DB_PORT=5432
-   ```
+4. No database configuration is required. Django creates `db.sqlite3` in the project folder when you run migrations.
+   Existing data stored in PostgreSQL is not copied automatically; export/import it separately if you need to keep it.
 5. Open a terminal with **Ctrl + `** (Terminal > New Terminal) and run the setup:
 
    **Windows (PowerShell or CMD)**
@@ -47,7 +41,7 @@ and [VS Code](https://code.visualstudio.com/) with the **Python** extension.
    ```
    bash setup.sh
    ```
-   This creates a virtual environment (`venv`), installs the packages, creates the database and loads demo data.
+   This creates a virtual environment (`venv`), installs the packages, initializes the SQLite database and loads demo data.
    If you prefer to do it by hand, see "Manual setup" below.
 6. When VS Code asks *"We noticed a new environment"*, click **Yes**. Or press `Ctrl+Shift+P`, choose
    **Python: Select Interpreter**, and pick the one inside `venv`.
@@ -156,7 +150,7 @@ Tiles show the exam average, the average rating out of 5, and an **overall** fig
 python -m venv venv
 venv\Scripts\activate          # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
-# Set SMARTEDU_DB_* in .env before continuing; see PostgreSQL setup above.
+# SQLite is used automatically; no database server or credentials are needed.
 python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
@@ -222,4 +216,4 @@ For a real deployment: set `SMARTEDU_DEBUG=0`, a long random `SMARTEDU_SECRET_KE
 - **"no such column" or "no such table":** run `python manage.py migrate`.
 - **Old students show a blank department:** their old class name is not in the official list. Run `python manage.py upgrade_departments`, then fix the rest in *Admin > Students*.
 - **"Port already in use":** run `python manage.py runserver 8001`.
-- **Start with a fresh PostgreSQL database:** run `python manage.py migrate` and `python manage.py seed_demo`.
+- **Start with a fresh SQLite database:** run `python manage.py migrate` and `python manage.py seed_demo`.

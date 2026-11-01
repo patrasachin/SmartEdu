@@ -79,12 +79,8 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('SMARTEDU_DB_NAME', 'smartedu'),
-        'USER': os.environ.get('SMARTEDU_DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('SMARTEDU_DB_PASSWORD', ''),
-        'HOST': os.environ.get('SMARTEDU_DB_HOST', 'localhost'),
-        'PORT': os.environ.get('SMARTEDU_DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
