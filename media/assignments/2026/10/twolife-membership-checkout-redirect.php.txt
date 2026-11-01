@@ -1,0 +1,58 @@
+/**
+ * TwoLife: send the three membership products directly to checkout.
+ * Product IDs: 29504 (12 months), 29502 (6 months), 29499 (3 months).
+ *
+ * Add this in Code Snippets and select "Run everywhere".
+ * Do not add an opening <?php tag when using Code Snippets.
+ */
+
+function twolife_membership_plan_labels() {
+    return array(
+        29504 => 'Choose 12-Month Plan',
+        29502 => 'Choose 6-Month Plan',
+        29499 => 'Choose 3-Month Plan',
+    );
+}
+
+/* Product archive/shop buttons: link straight to checkout, bypassing cart-page UI. */
+add_filter( 'woocommerce_loop_add_to_cart_link', function ( $html, $product, $args ) {
+    if ( ! $product instanceof WC_Product ) {
+        return $html;
+    }
+
+    $labels = twolife_membership_plan_labels();
+    $product_id = $product->get_id();
+
+    if ( ! isset( $labels[ $product_id ] ) ) {
+        return $html;
+    }
+
+    $checkout_url = add_query_arg(
+        array( 'add-to-cart' => $product_id ),
+        wc_get_checkout_url()
+    );
+
+    return sprintf(
+        '<a href="%1$s" class="button twolife-membership-checkout-button">%2$s</a>',
+        esc_url( $checkout_url ),
+        esc_html( $labels[ $product_id ] )
+    );
+}, 10, 3 );
+
+/* Single product pages: redirect after adding one of these memberships to cart. */
+add_filter( 'woocommerce_add_to_cart_redirect', function ( $url ) {
+    $membership_product_ids = array( 29504, 29502, 29499 );
+    $product_id = 0;
+
+    if ( isset( $_REQUEST['add-to-cart'] ) && is_scalar( $_REQUEST['add-to-cart'] ) ) {
+        $product_id = absint( wp_unslash( $_REQUEST['add-to-cart'] ) );
+    } elseif ( isset( $_REQUEST['product_id'] ) && is_scalar( $_REQUEST['product_id'] ) ) {
+        $product_id = absint( wp_unslash( $_REQUEST['product_id'] ) );
+    }
+
+    if ( in_array( $product_id, $membership_product_ids, true ) ) {
+        return wc_get_checkout_url();
+    }
+
+    return $url;
+}, 99 );
