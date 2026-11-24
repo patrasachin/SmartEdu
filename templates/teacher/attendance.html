@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Attendance{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Attendance</h1><p>Pick a department, semester and date, set everyone's status, save once.</p></div></div>
+<div class="page-head"><div><h1>Attendance</h1><p>Choose a semester and date, set everyone's status, save once.</p></div></div>
 <form method="get" class="d-flex flex-wrap gap-2 mb-3 align-items-end">
   <div><label class="form-label">Department and semester</label><div class="d-flex flex-wrap gap-2">{% include 'partials/dept_sem_filter.html' with no_all=1 %}</div></div>
   <div><label class="form-label" for="dt">Date</label><input id="dt" class="form-control" type="date" name="date" value="{{ date|date:'Y-m-d' }}"></div>

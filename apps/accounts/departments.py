@@ -75,13 +75,11 @@ def student_scope(user):
 
 
 def teacher_departments(user):
-    """Departments a teacher may send work to. Everything by default (one teacher can teach many departments, for
-    example Applied Science & Humanities); set TEACHER_LIMIT_TO_OWN_DEPARTMENT = True to allow only their own."""
-    from django.conf import settings
+    """The department assigned to this teacher by an admin."""
     p = getattr(user, 'teacher_profile', None)
-    if getattr(settings, 'TEACHER_LIMIT_TO_OWN_DEPARTMENT', False) and p and p.department in DEPARTMENTS:
+    if p and p.department in DEPARTMENTS:
         return [p.department]
-    return department_choices()
+    return []
 
 
 def pair_label(department, semester):

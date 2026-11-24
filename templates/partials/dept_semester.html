@@ -1,6 +1,7 @@
 {% load static %}
 <div class="row">
-  <div class="col-md-8">{% include 'partials/field.html' with field=form.department force_required=1 %}</div>
+  {% if user.role == 'TEACHER' %}<div class="col-12"><div class="form-label">Department</div><div class="form-control-plaintext fw-semibold">{{ form.department.value|default:form.department.field.choices.1.1 }}</div>{{ form.department }}</div>
+  {% else %}<div class="col-md-8">{% include 'partials/field.html' with field=form.department force_required=1 %}</div>{% endif %}
   <div class="col-md-4">{% include 'partials/field.html' with field=form.semester force_required=1 %}</div>
 </div>
 {{ DEPT_SEM_MAP|json_script:"dept-sem-map" }}

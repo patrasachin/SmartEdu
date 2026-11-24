@@ -63,8 +63,11 @@ class DeptSemForm(StyledForm):
 
     def __init__(self, *a, allowed_departments=None, **kw):
         super().__init__(*a, **kw)
-        depts = allowed_departments or department_choices()
+        depts = department_choices() if allowed_departments is None else list(allowed_departments)
         self.fields['department'].choices = [('', 'Select a department')] + [(d, d) for d in depts]
+        if len(depts) == 1:
+            self.fields['department'].widget = forms.HiddenInput()
+            self.fields['department'].initial = depts[0]
         self.fields['semester'].choices = [('', 'Select a semester')] + [(str(i), semester_label(i)) for i in range(1, 9)]
 
     def clean(self):

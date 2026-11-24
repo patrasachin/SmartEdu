@@ -27,6 +27,9 @@ class ExamForm(StyledModelForm):
         super().__init__(*a, **kw)
         depts = teacher_departments(user) if user is not None else teacher_departments(None)
         self.fields['department'].choices = [('', 'Select a department')] + [(d, d) for d in depts]
+        if len(depts) == 1:
+            self.fields['department'].widget = forms.HiddenInput()
+            self.fields['department'].initial = depts[0]
         self.fields['semester'].choices = [('', 'Select a semester')] + [(str(i), semester_label(i)) for i in range(1, 9)]
         profile = getattr(user, 'teacher_profile', None)
         if not self.is_bound and not self.instance.pk and profile and profile.department in depts:

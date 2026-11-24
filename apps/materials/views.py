@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import teacher_required
-from apps.accounts.departments import DEPARTMENTS, semester_count, student_scope, students_in
+from apps.accounts.departments import semester_count, student_scope, students_in, teacher_departments
 from apps.accounts.models import User
 from apps.notifications.models import Notification
 from .forms import MaterialForm
@@ -34,13 +34,14 @@ def material_list(request):
             'kinds': ['PDF', 'Word', 'PowerPoint', 'Excel', 'Link'], 'my_department': p.department, 'my_semester': p.semester})
     if user.role == 'TEACHER':
         qs = StudyMaterial.objects.filter(uploaded_by=user)
-        dept, sem = request.GET.get('department', ''), request.GET.get('semester', '')
+        departments = teacher_departments(user)
+        dept, sem = (departments[0] if departments else ''), request.GET.get('semester', '')
         if dept:
             qs = qs.filter(department=dept)
         if sem.isdigit():
             qs = qs.filter(semester=int(sem))
         return render(request, 'materials/teacher_list.html', {
-            'items': qs, 'departments': DEPARTMENTS, 'dept': dept, 'sem': sem,
+            'items': qs, 'departments': departments, 'dept': dept, 'sem': sem,
             'semesters': list(range(1, (semester_count(dept) if dept else 8) + 1))})
     return redirect('admin_dashboard')
 

@@ -1,6 +1,7 @@
 from collections import Counter
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -14,7 +15,7 @@ from apps.exams.utils import refresh_exam_totals
 from apps.notifications.models import Notification
 from apps.notifications.emails import send_guardian_attendance
 from urllib.parse import urlencode
-from apps.accounts.departments import DEPARTMENTS, semester_count, students_in
+from apps.accounts.departments import DEPARTMENTS, semester_count, students_in, teacher_departments
 from apps.performance.models import PerformanceReport, WeakTopic, Recommendation
 from apps.performance.series import performance_series
 from apps.assignments.models import AssignmentSubmission
@@ -265,12 +266,16 @@ def auto_evaluate(request, exam_id):
 # ------------------------------------------------------------------ students
 @teacher_required
 def students_view(request):
+    departments = teacher_departments(request.user)
+    dept = departments[0] if departments else ''
     qs = User.objects.filter(role='STUDENT').select_related('student_profile').order_by(
         'student_profile__department', 'student_profile__semester', 'student_profile__roll_number')
-    dept, sem = request.GET.get('department', ''), request.GET.get('semester', '')
+    sem = request.GET.get('semester', '')
     q = request.GET.get('q', '').strip()
     if dept:
         qs = qs.filter(student_profile__department=dept)
+    else:
+        qs = qs.none()
     if sem.isdigit():
         qs = qs.filter(student_profile__semester=int(sem))
     if q:
@@ -279,13 +284,16 @@ def students_view(request):
     if request.GET.get('filter') == 'low':
         students = [s for s in students if s.is_low]
     return render(request, 'teacher/students.html', {
-        'students': students, 'departments': DEPARTMENTS, 'dept': dept, 'sem': sem, 'semesters': _sem_values(dept),
+        'students': students, 'departments': departments, 'dept': dept, 'sem': sem, 'semesters': _sem_values(dept),
         'q': q, 'filter': request.GET.get('filter', '')})
 
 
 @teacher_required
 def student_detail(request, student_id):
     student = get_object_or_404(User.objects.select_related('student_profile'), id=student_id, role='STUDENT')
+    allowed_departments = teacher_departments(request.user)
+    if not allowed_departments or student.student_profile.department not in allowed_departments:
+        raise PermissionDenied
     reports = PerformanceReport.objects.filter(student=student).select_related('exam').order_by('generated_at')
     chart = {'labels': [r.exam.title if r.exam else 'Exam' for r in reports], 'values': [round(r.percentage, 1) for r in reports], 'threshold': THRESHOLD}
     _student_stats([student])
@@ -302,21 +310,19 @@ def student_detail(request, student_id):
 @teacher_required
 def attendance_view(request):
     profile = getattr(request.user, 'teacher_profile', None)
-    default_dept = profile.department if profile and profile.department in DEPARTMENTS else DEPARTMENTS[0]
-    dept = request.GET.get('department') or request.POST.get('department') or default_dept
-    if dept not in DEPARTMENTS:
-        dept = default_dept
+    default_dept = profile.department if profile and profile.department in DEPARTMENTS else ''
+    dept = default_dept
     try:
         sem = int(request.GET.get('semester') or request.POST.get('semester') or 1)
     except ValueError:
         sem = 1
-    sem = min(max(sem, 1), semester_count(dept))
+    sem = min(max(sem, 1), semester_count(dept)) if dept else 1
     date_str = request.GET.get('date') or request.POST.get('date') or timezone.localdate().isoformat()
     try:
         date = timezone.datetime.fromisoformat(date_str).date()
     except ValueError:
         date = timezone.localdate()
-    students = list(students_in(dept, sem).select_related('student_profile').order_by('student_profile__roll_number'))
+    students = list(students_in(dept, sem).select_related('student_profile').order_by('student_profile__roll_number')) if dept else []
 
     if request.method == 'POST':
         saved = 0
@@ -347,7 +353,7 @@ def attendance_view(request):
                          absent=Count('id', filter=Q(status='ABSENT')))
                .order_by('-date')[:8])
     return render(request, 'teacher/attendance.html', {
-        'students': students, 'departments': DEPARTMENTS, 'dept': dept, 'sem': str(sem), 'semesters': _sem_values(dept),
+        'students': students, 'departments': [dept] if dept else [], 'dept': dept, 'sem': str(sem), 'semesters': _sem_values(dept),
         'date': date, 'history': history,
         'statuses': [('PRESENT', 'Present'), ('LATE', 'Late'), ('ABSENT', 'Absent')],
         'already_marked': bool(existing)})
